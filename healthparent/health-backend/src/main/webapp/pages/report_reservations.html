@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- 页面meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>传智健康</title>
+    <meta name="description" content="传智健康">
+    <meta name="keywords" content="传智健康">
+    <meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" name="viewport">
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="../plugins/elementui/index.css">
+    <link rel="stylesheet" href="../plugins/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <!-- 引入组件库 -->
+    <!--    <script type="text/javascript" src="../js/jquery.min.js"></script>-->
+    <script src="../js/vue.js"></script>
+    <script src="../plugins/elementui/index.js"></script>
+    <script src="../js/axios-0.18.0.js"></script>
+    <script src="../plugins/echarts/echarts.js"></script>
+
+</head>
+<body class="hold-transition">
+<div id="app">
+    <div class="content-header">
+        <h1>统计分析
+            <small>收入分析</small>
+        </h1>
+        <el-breadcrumb separator-class="el-icon-arrow-right" class="breadcrumb">
+            <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+            <el-breadcrumb-item>统计管理</el-breadcrumb-item>
+            <el-breadcrumb-item>收入分析</el-breadcrumb-item>
+        </el-breadcrumb>
+    </div>
+    <div class="app-container">
+        <div class="box">
+            <div class="filter-container">
+                <template>
+                    <el-date-picker
+                            v-model="dateRange"
+                            type="daterange"
+                            align="right"
+                            unlink-panels
+                            value-format="yyyy-MM-dd"
+                            range-separator="至"
+                            start-placeholder="开始日期"
+                            end-placeholder="结束日期"
+                            :picker-options="pickerOptions">
+                    </el-date-picker>
+                </template>
+                <el-button @click="findPageCondition()" class="dalfBut">查询</el-button>
+            </div>
+            <div id="chart1" style="height:600px;"></div>
+        </div>
+    </div>
+</div>
+</body>
+
+<script>
+    var vue = new Vue({
+        el: '#app',
+        data: {
+            pickerOptions: {
+                disabledDate(time) {
+                    const lastMonthTime = new Date().setMonth(new Date().getMonth() - 1);
+                    const firstMonthTime = new Date().setMonth(new Date().getMonth() + 1);
+                    // return time.getTime() > Date.now() || time < lastMonthTime
+                    return time > firstMonthTime || time < lastMonthTime
+                },
+                shortcuts: [{
+                    text: '最近一周',
+                    onClick(picker) {
+                        const end = new Date();
+                        const start = new Date();
+                        start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
+                        picker.$emit('pick', [start, end]);
+                    }
+                }, {
+                    text: '最近一个月',
+                    onClick(picker) {
+                        const end = new Date();
+                        const start = new Date();
+                        start.setTime(start.getTime() - 3600 * 1000 * 24 * 30);
+                        picker.$emit('pick', [start, end]);
+                    }
+                }, {
+                    text: '最近三个月',
+                    onClick(picker) {
+                        const end = new Date();
+                        const start = new Date();
+                        start.setTime(start.getTime() - 3600 * 1000 * 24 * 90);
+                        picker.$emit('pick', [start, end]);
+                    }
+                }]
+            },
+            dateRange: [],
+        },
+        created() {
+            this.findPageCondition();
+        },
+        methods:{
+            findPageCondition() {
+                axios.post('/report/getReservationsReport.do', this.dateRange).then((res) => {
+                    // 基于准备好的dom，初始化echarts实例
+                    var myChart1 = echarts.init(document.getElementById('chart1'));
+                    myChart1.setOption({
+                        title: {
+                            text: '传智健康',
+                            subtext: '每日预约到诊人数'
+                        },
+                        tooltip: {
+                            trigger: 'axis'
+                        },
+                        legend: {
+                            data:['预约人数','到诊人数']
+                        },
+                        toolbox: {
+                            show: true,
+                            feature: {
+                                magicType: {type: ['line', 'bar']},
+                            }
+                        },
+                        xAxis:  {
+                            type: 'category',
+                            boundaryGap: false,
+                            //['周一','周二','周三','周四','周五','周六','周日']
+                            data: res.data.data.timeDataNames
+                        },
+                        yAxis: {
+                            type: 'value',
+                        },
+                        series: [
+                            {
+                                name:'预约人数',
+                                type:'line',
+                                data:res.data.data.number,
+                            },
+                            {
+                                name:'到诊人数',
+                                type:'line',
+                                data:res.data.data.reservation,
+                            }
+                        ]
+                    });
+                })
+            }
+        }
+    });
+
+
+    // 使用刚指定的配置项和数据显示图表。
+    //myChart.setOption(option);
+
+</script>
+</html>

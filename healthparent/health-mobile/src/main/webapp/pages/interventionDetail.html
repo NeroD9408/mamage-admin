@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0,user-scalable=no,minimal-ui">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <link rel="icon" href="../img/asset-favico.ico">
+        <title>编辑信息</title>
+
+        <!--引用百度地图API-->
+        <style type="text/css">
+            html,body{margin:0;padding:0;}
+            .iw_poi_title {color:#CC5522;font-size:14px;font-weight:bold;overflow:hidden;padding-right:13px;white-space:nowrap}
+            .iw_poi_content {font:12px arial,sans-serif;overflow:visible;padding-top:4px;white-space:-moz-pre-wrap;word-wrap:break-word}
+        </style>
+        <script type="text/javascript" src="http://api.map.baidu.com/api?key=&v=1.1&services=true"></script>
+
+        <link rel="stylesheet" href="../css/page-health-orderInfo.css" />
+        <!--<link rel="stylesheet" href="../plugins/elementui/index.css" />-->
+        <!--<script src="../plugins/jquery/dist/jquery.min.js"></script>-->
+        <script src="../plugins/healthmobile.js"></script>
+        <!--<script src="../plugins/datapicker/datePicker.js"></script>-->
+        <script src="../plugins/vue/vue.js"></script>
+        <script src="../plugins/vue/axios-0.18.0.js"></script>
+        <!--<script src="../plugins/elementui/index.js"></script>-->
+
+
+        <script>
+            //获取从干预页面传来的订单的id
+            var id = getUrlParam("id");
+        </script>
+
+    </head>
+    <body data-spy="scroll" data-target="#myNavbar" data-offset="150">
+
+       <div id="app" class="app">
+       <div class="top-header">
+           <span class="f-left"><i class="icon-back" onclick="history.go(-1)"></i></span>
+           <span class="center">传智健康</span>
+           <span class="f-right"><i class="icon-more"></i></span>
+       </div>
+       <!-- 页面内容 -->
+       <div class="contentBox">
+           <div class="card">
+               <div class="">
+                   <!--<img :src="'http://q15lbtw63.bkt.clouddn.com/'+setmeal.img" width="100%" height="100%" />-->
+               </div>
+               <div class="project-text">
+                   <h4 class="tit">体检套餐{{Info.setmealName}}</h4>
+                   <p class="subtit">体检人{{Info.patientsName}}</p>
+                   <p class="subtit">体检日期{{Info.orderDate}}</p>
+               </div>
+               <div class="project-know">
+                   <a href="orderNotice.html" class="link-page">
+
+                       <span class="el-icon-share"> 健康师建议及治疗方案</span>
+                       <span class="arrow"><i class="icon-rit-arrow"></i></span>
+                   </a>
+               </div>
+           </div>
+           <div class="form-info">
+               <form class="info-form">
+                   <div class="input-row">
+                       体检报告 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;{{Info.orderCount}}
+                   </div>
+
+                   <div class="input-row">
+
+                       健康师意见  &ensp;&ensp;&ensp;&ensp;&ensp;{{Info.opinionCount}}
+                   </div>
+
+                   <div class="input-row">
+                       建议药物   &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;{{Info.medicineOne}}<br>
+                       &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;{{Info.medicineTwo}}
+                   </div>
+
+                   <div  class="input-row">
+                       建议运动&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;{{Info.sportOne}}<br>
+                       &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;{{Info.sportTwo}}
+                   </div>
+
+                   <div class="input-row">
+                       建议膳食   &ensp;&ensp;&ensp;&ensp;&ensp;{{Info.foodOne}}<br>
+                       &ensp;   &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;{{Info.foodTwo}}
+                   </div>
+
+               </form>
+               <div class="box-button">
+                   <button type="button" class="btn order-btn">去点评一下吧</button>
+               </div>
+           </div>
+       </div>
+       </div>
+
+    </body>
+    <script>
+        var vue = new Vue({
+            el:'#app',
+            data:{
+                Info:{}, //预约信息
+            },
+            mounted() {
+                axios.post("/intervention/findAMapById.do?id=" + id).then((res) => {
+
+                    this.Info = res.data.data;
+
+                });
+            }
+        })
+    </script>
+</html>

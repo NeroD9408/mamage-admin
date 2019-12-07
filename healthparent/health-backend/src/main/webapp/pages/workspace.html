@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html dir="ltr" lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!-- Tell the browser to be responsive to screen width -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <!-- Favicon icon -->
+    <!--<link rel="icon" type="image/png" sizes="16x16" href="../../assets/images/favicon.png">-->
+    <title>传智健康</title>
+    <link rel="stylesheet" href="../plugins/elementui/index.css">
+    <!--<link rel="stylesheet" href="../css/style.css">-->
+    <!-- Custom CSS -->
+    <link href="css/float-chart.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/workspacestyle.min.css">
+
+    <style>
+        .row {
+            margin-top: 20px;
+        }
+
+        a {
+            color: #fff;
+        }
+
+        a:hover {
+            color: #fff;
+        }
+
+        .content-header{
+            position: relative;
+            padding: 15px 15px 0 15px;
+        }
+        .content-header > h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: normal;
+        }
+
+        .breadcrumb {
+            float: right;
+            background: transparent;
+            margin-top: 0;
+            margin-bottom: 0;
+            font-size: 12px;
+            padding: 7px 5px;
+            position: absolute;
+            top: 20px;
+            right: 10px;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+
+<body>
+<div id="app">
+    <div id="main-wrapper">
+        <div class="container-fluid">
+            <div class="content-header">
+                <h1>工作空间</h1>
+                <el-breadcrumb separator-class="el-icon-arrow-right" class="breadcrumb">
+                    <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+                    <el-breadcrumb-item>工作空间</el-breadcrumb-item>
+                </el-breadcrumb>
+            </div>
+            <!-- 工作台快速进入 -->
+            <div class="row">
+                <!-- Column -->
+                <div class="col-md-6 col-lg-2 col-xlg-3">
+                    <div class="card card-hover">
+                        <div class="box bg-cyan text-center">
+                            <a href="ordersetting.html">
+                                <h1 class="font-light text-white"><i class="fa fa-address-card"></i></h1>
+                                <h6 class="text-white">预约管理</h6>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <!-- Column -->
+                <div class="col-md-6 col-lg-4 col-xlg-3">
+                    <div class="card card-hover">
+                        <div class="box bg-success text-center">
+                            <a href="report_business.html">
+                                <h1 class="font-light text-white"><i class="fa fa-chart-line" aria-hidden="true"></i>
+                                </h1>
+                                <h6 class="text-white">运营数据</h6>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <!-- Column -->
+                <div class="col-md-6 col-lg-2 col-xlg-3">
+                    <div class="card card-hover">
+                        <div class="box bg-warning text-center">
+                            <a href="report_business.html">
+                                <h1 class="font-light text-white"><i class="fa fa-calendar-check"></i></h1>
+                                <h6 class="text-white">今日计划</h6>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <!-- Column -->
+                <div class="col-md-6 col-lg-2 col-xlg-3">
+                    <div class="card card-hover">
+                        <div class="box bg-danger text-center">
+                            <a href="report_business.html">
+                                <h1 class="font-light text-white"><i class="fa fa-users"></i></h1>
+                                <h6 class="text-white">会员管理</h6>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <!-- Column -->
+                <div class="col-md-6 col-lg-2 col-xlg-3">
+                    <div class="card card-hover">
+                        <div class="box bg-info text-center">
+                            <a href="page-user.html">
+                                <h1 class="font-light text-white"><i class="fa fa-cog"></i></h1>
+                                <h6 class="text-white">系统设置</h6>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <!-- Column -->
+                <!-- Column -->
+                <div class="col-md-6 col-lg-4 col-xlg-3">
+                    <div class="card card-hover">
+                        <div class="box bg-danger text-center">
+                            <a href="page-user.html">
+                                <h1 class="font-light text-white"><i class="fa fa-medkit"></i></h1>
+                                <h6 class="text-white">健康干预</h6>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <!-- Column -->
+                <div class="col-md-6 col-lg-2 col-xlg-3">
+                    <div class="card card-hover">
+                        <div class="box bg-info text-center">
+                            <a href="address.html">
+                                <h1 class="font-light text-white"><i class="fa fa-building"></i></h1>
+                                <h6 class="text-white">机构地址管理</h6>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <!-- Column -->
+                <div class="col-md-6 col-lg-2 col-xlg-3">
+                    <div class="card card-hover">
+                        <div class="box bg-cyan text-center">
+                            <a href="page-user.html">
+                                <h1 class="font-light text-white"><i class="fa fa-child"></i></h1>
+                                <h6 class="text-white">体检上传</h6>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <!-- Column -->
+                <div class="col-md-6 col-lg-2 col-xlg-3">
+                    <div class="card card-hover">
+                        <div class="box bg-success text-center">
+                            <a href="page-user.html">
+                                <h1 class="font-light text-white"><i class="fa fa-graduation-cap"></i></h1>
+                                <h6 class="text-white">管理题库</h6>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <!-- Column -->
+                <div class="col-md-6 col-lg-2 col-xlg-3">
+                    <div class="card card-hover">
+                        <div class="box bg-warning text-center">
+                            <a href="javascript:void(0)" @click="logout">
+                                <h1 class="font-light text-white"><i class="fa fa-power-off"></i></h1>
+                                <h6 class="text-white">登出系统</h6>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <!-- Column -->
+            </div>
+
+            <!-- 图形报表及展示信息 -->
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-md-flex align-items-center">
+                                <div>
+                                    <h4 class="card-title">预约到诊数量统计</h4>
+                                    <h5 class="card-subtitle">近期每日预约到诊人数</h5>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <!-- column -->
+                                <div class="col-lg-9">
+                                    <div>
+                                        <div id="chart1" style="height:450px; margin-top: -60px;"></div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-3">
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <div class="bg-dark p-10 text-white text-center">
+                                                <i class="fa fa-user m-b-5 font-16"></i>
+                                                <h5 class="m-b-0 m-t-5">{{resData.totalMemeberCount}}</h5>
+                                                <small class="font-light">会员总数</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="bg-dark p-10 text-white text-center">
+                                                <i class="fa fa-plus m-b-5 font-16"></i>
+                                                <h5 class="m-b-0 m-t-5">{{resData.todayMemeberCount}}</h5>
+                                                <small class="font-light">今日新增会员</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-6 m-t-15">
+                                            <div class="bg-dark p-10 text-white text-center">
+                                                <i class="fa fa-cart-plusfa fa-tags m-b-5 font-16"></i>
+                                                <h5 class="m-b-0 m-t-5">{{resData.totalOrderCount}}</h5>
+                                                <small class="font-light">预约总数</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-6 m-t-15">
+                                            <div class="bg-dark p-10 text-white text-center">
+                                                <i class="fa fa-tag m-b-5 font-16"></i>
+                                                <h5 class="m-b-0 m-t-5">{{resData.todayOrderCount}}</h5>
+                                                <small class="font-light">今日预约</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-6 m-t-15">
+                                            <div class="bg-dark p-10 text-white text-center">
+                                                <i class="fa fa-yen-sign m-b-5 font-16"></i>
+                                                <h5 class="m-b-0 m-t-5">{{resData.todayIncome}}</h5>
+                                                <small class="font-light">今日收入</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-6 m-t-15">
+                                            <div class="bg-dark p-10 text-white text-center">
+                                                <i class="fa fa-copy m-b-5 font-16"></i>
+                                                <h5 class="m-b-0 m-t-5">{{resData.todayMemeberCount}}</h5>
+                                                <small class="font-light">新增问卷</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- column -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- ============================================================== -->
+            <!-- Sales chart -->
+            <!-- ============================================================== -->
+            <!-- ============================================================== -->
+            <!-- Recent comment and chats -->
+        </div>
+    </div>
+</div>
+</body>
+<script src="../js/jquery.min.js"></script>
+<script src="dist/umd/popper.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="dist/perfect-scrollbar.jquery.min.js"></script>
+<script src="js/sparkline.js"></script>
+<script src="dist/umd/waves.js"></script>
+<script src="dist/umd/sidebarmenu.js"></script>
+<script src="dist/umd/custom.min.js"></script>
+<script src="dist/flot/excanvas.js"></script>
+<script src="dist/flot/jquery.flot.js"></script>
+<script src="dist/flot/jquery.flot.pie.js"></script>
+<script src="dist/flot/jquery.flot.time.js"></script>
+<script src="dist/flot/jquery.flot.stack.js"></script>
+<script src="dist/flot/jquery.flot.crosshair.js"></script>
+<script src="dist/flot/jquery.flot.tooltip.min.js"></script>
+<script src="dist/flot/chart-page-init.js"></script>
+<script src="../js/axios-0.18.0.js"></script>
+<script src="../plugins/echarts/echarts.js"></script>
+<script src="../js/vue.js"></script>
+<script src="../plugins/elementui/index.js"></script>
+
+<script>
+    new Vue({
+        el: "#app",
+        data: {
+            resData: {}
+        },
+        methods: {
+            logout() {
+              window.top.location = '/logout.do';
+            },
+            findData() {
+                axios.get('/report/getWorkSpaceData.do').then((res) => {
+                    this.resData = res.data.data;
+                })
+            }
+        },
+        created() {
+            this.findData();
+        }
+    })
+</script>
+
+<script>
+    var dateRange = [];
+    axios.post('/report/getReservationsReport.do', dateRange).then((res) => {
+        // 基于准备好的dom，初始化echarts实例
+        var myChart1 = echarts.init(document.getElementById('chart1'));
+        myChart1.setOption({
+            tooltip: {
+                trigger: 'axis'
+            },
+            legend: {
+                data: ['预约人数', '到诊人数']
+            },
+            xAxis: {
+                type: 'category',
+                boundaryGap: false,
+                //['周一','周二','周三','周四','周五','周六','周日']
+                data: res.data.data.timeDataNames
+            },
+            yAxis: {
+                type: 'value',
+            },
+            series: [
+                {
+                    name: '预约人数',
+                    type: 'line',
+                    data: res.data.data.number,
+                },
+                {
+                    name: '到诊人数',
+                    type: 'line',
+                    data: res.data.data.reservation,
+                }
+            ]
+        });
+    })
+</script>
+
+</html>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itheima.dao.SportDao">
+
+    <insert id="add" parameterType="com.itheima.pojo.Sport">
+        insert into t_sport
+      		(number,name,sportType,time,frequency,position,method)
+                      values
+      		(#{number},#{name},#{sportType},#{time},#{frequency},#{position},#{method})
+    </insert>
+
+    <update id="editDateByNumber" parameterType="com.itheima.pojo.Sport">
+        update t_sport
+          set name = #{name},
+                sportType=#{sportType},
+                time=#{time},
+                frequency=#{frequency},
+                position=#{position},
+                method=#{method}
+          where number = #{number}
+    </update>
+
+    <select id="findCountByNumber" parameterType="String" resultType="long">
+        select count(id) from t_sport where number = #{number}
+    </select>
+
+    <select id="findByConition" parameterType="String" resultType="com.itheima.pojo.Sport">
+        select * from t_sport
+        <if test="value !=null and value.length > 0">
+            where number like concat('%',#{value},'%') or name like concat('%',#{value},'%')
+        </if>
+    </select>
+
+    <select id="findById" parameterType="int" resultType="com.itheima.pojo.Sport">
+        select * from t_sport where id=#{id}
+    </select>
+
+    <delete id="deleteById" parameterType="int">
+        delete from t_sport where id=#{id}
+    </delete>
+
+    <!--00000-->
+    <update id="update" parameterType="com.itheima.pojo.Sport">
+        update t_sport
+        <set>
+            <if test="number !=null">
+                number=#{number},
+            </if>
+            <if test="name !=null">
+                name=#{name},
+            </if>
+            <if test="sportType !=null">
+                sportType=#{sportType},
+            </if>
+            <if test="time !=null">
+                time=#{time},
+            </if>
+            <if test="frequency !=null">
+                frequency=#{frequency},
+            </if>
+            <if test="position !=null">
+                position=#{position},
+            </if>
+            <if test="method !=null">
+                method=#{method},
+            </if>
+        </set>
+
+        where id=#{id}
+
+    </update>
+</mapper>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itheima.dao.InterventionDao" >
+
+   <select id="findFood" parameterType="int" resultType="string">
+       SELECT NAME FROM t_food WHERE id=#{id}
+   </select>
+
+    <select id="findSport" parameterType="int" resultType="string">
+        SELECT NAME FROM t_sport WHERE id=#{id}
+    </select>
+
+    <select id="findMedicine" parameterType="int" resultType="string">
+        SELECT NAME FROM t_medicine WHERE id=#{id}
+    </select>
+
+    <insert id="add" parameterType="intervention">
+        <selectKey resultType="java.lang.Integer" order="AFTER" keyProperty="id">
+            select LAST_INSERT_ID()
+        </selectKey>
+        INSERT  into t_intervention (medicineOne,medicineTwo,sportOne,sportTwo,foodOne,foodTwo)values(#{medicineOne},#{medicineTwo},#{sportOne},#{sportTwo},#{foodOne},#{foodTwo})
+    </insert>
+
+    <select id="findInterventionById" parameterType="int" resultType="Intervention">
+        select * from t_intervention where id=#{id}
+    </select>
+</mapper>

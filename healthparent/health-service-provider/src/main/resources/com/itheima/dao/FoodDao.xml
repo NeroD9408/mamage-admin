@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itheima.dao.FoodDao">
+
+    <insert id="add" parameterType="com.itheima.pojo.Food">
+        insert into t_food
+      		(type,name,kj,protein,fat,unit)
+                      values
+      		(#{type},#{name},#{kj},#{protein},#{fat},#{unit})
+    </insert>
+
+
+    <select id="findCountById" parameterType="int" resultType="long">
+        select count(id) from t_food where id = #{id}
+    </select>
+
+    <select id="findByConition" parameterType="String" resultType="com.itheima.pojo.Food">
+        select * from t_food
+        <if test="value !=null and value.length > 0">
+            where name like concat('%',#{value},'%')
+        </if>
+    </select>
+
+    <select id="findById" parameterType="int" resultType="com.itheima.pojo.Food">
+        select * from t_food where id=#{id}
+    </select>
+
+    <delete id="deleteById" parameterType="int">
+        delete from t_food where id=#{id}
+    </delete>
+
+    <update id="update" parameterType="com.itheima.pojo.Food">
+        update t_food
+        <set>
+            <if test="type !=null">
+                type=#{type},
+            </if>
+            <if test="name !=null">
+                name=#{name},
+            </if>
+            <if test="kj !=null">
+                kj=#{kj},
+            </if>
+            <if test="protein !=null">
+                protein=#{protein},
+            </if>
+            <if test="fat !=null">
+                fat=#{fat},
+            </if>
+            <if test="unit !=null">
+                unit=#{unit},
+            </if>
+        </set>
+        where id=#{id}
+    </update>
+</mapper>

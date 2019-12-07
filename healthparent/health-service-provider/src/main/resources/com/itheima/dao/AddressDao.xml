@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itheima.dao.AddressDao" >
+
+    <!--分页查询的时候的的根据条件查询-->
+    <select id="findByCondition" parameterType="string" resultType="address">
+        select * from t_address
+        <if test="value!=null and value.length>0">
+            where location like concat('%',#{value},'%') or name like concat('%',#{value},'%') or helpCode like concat('%',#{value},'%')
+        </if>
+    </select>
+
+    <!--添加新的机构地址-->
+    <insert id="add" parameterType="address">
+        <selectKey resultType="java.lang.Integer" keyProperty="id" order="AFTER">
+            select LAST_INSERT_ID()
+        </selectKey>
+        insert into t_address (id,name,helpCode,location,telephone,openTime,longitude,latitude,remark,img,status)
+        values(#{id},#{name},#{helpCode},#{location},#{telephone},#{openTime},#{longitude},#{latitude},#{remark},#{img},#{status})
+    </insert>
+
+    <!--插入机构地址和检查套餐的关系到中间表t_address_setmeal-->
+    <insert id="addReference" parameterType="map">
+        insert into t_address_setmeal(address_id,setmeal_id) values(#{addressId},#{setmealId})
+    </insert>
+
+    <!--当客户点击编辑按钮之后,弹出编辑框,首先要进行被点击地址的信息回显,通过id去数据库查询-->
+    <select id="findById" parameterType="Integer" resultType="address">
+        select * from t_address where id=#{id}
+    </select>
+
+    <!--客户在编辑窗口点击了确定之后,为客户更新数据库里面的数据-->
+    <update id="update" parameterType="address">
+        update t_address
+        <set>
+            <if test="name !=null">
+                name=#{name},
+            </if>
+            <if test="helpCode !=null">
+                helpCode=#{helpCode},
+            </if>
+            <if test="location !=null">
+                location=#{location},
+            </if>
+            <if test="telephone !=null">
+                telephone=#{telephone},
+            </if>
+            <if test="openTime !=null">
+                openTime=#{openTime},
+            </if>
+            <if test="longitude !=null">
+                longitude=#{longitude},
+            </if>
+            <if test="latitude !=null">
+                latitude=#{latitude},
+            </if>
+            <if test="remark !=null">
+               remark=#{remark},
+            </if>
+            <if test="img !=null">
+                img=#{img},
+            </if>
+            <if test="status !=null">
+                status=#{status},
+            </if>
+        </set>
+        where id=#{id}
+    </update>
+
+    <!--在第一次点击删除的时候,根据id去数据库删除机构地址,如果没有关联,删除成功,有关联抛sql异常,前台再处理-->
+    <delete id="deleteById" parameterType="Integer">
+        delete from t_address where id=#{id}
+    </delete>
+
+    <!--在第一次删除的时候,后台没删掉,提示有订单关联,但是用户在看到提示后,任然点击确认,就会执行此方法
+    此方法代表会把该id的机构运营状态该为暂停运营,类似商品下架,客户端将无法再看到该机构信息-->
+    <update id="editAddressStatusById" parameterType="Integer">
+        update t_address set status='暂停运营' where id=#{id}
+    </update>
+
+    <select id="findSetmealIds" parameterType="int" resultType="int">
+        select setmeal_id from t_address_setmeal where address_id=#{id}
+    </select>
+
+    <delete id="deleteReference" parameterType="int">
+        delete from t_address_setmeal where address_id=#{id}
+    </delete>
+
+    <!--根据id查询运营状态-->
+    <select id="findStatusById" parameterType="Integer" resultType="string">
+        SELECT status FROM t_address WHERE id=#{id}
+    </select>
+
+    <!--根据客户所选套餐的id查询出哪些正常在运营的医疗机构有这个套餐,并返回这些机构,展示给客户,非正常运营的机构是不展示的-->
+    <select id="findAllAddressBySetmealId" parameterType="Integer" resultType="address">
+        SELECT * FROM t_address WHERE id IN (SELECT address_id FROM t_address_setmeal WHERE setmeal_id=#{id}) AND status='正常运营'
+    </select>
+
+
+    <select id="findIdByName" parameterType="string" resultType="Integer">
+        select id from t_address where name=#{value}
+    </select>
+
+
+    <select id="getAddress" parameterType="int" resultType="address">
+        select * from t_address where id in (select address_id from t_address_setmeal where setmeal_id = #{id}) AND status='正常运营'
+    </select>
+
+    <select id="getAddressByOrderId" parameterType="int" resultType="address">
+        select * from t_address where id = (select address_id from t_order where id = #{orderId}) AND status='正常运营'
+    </select>
+</mapper>

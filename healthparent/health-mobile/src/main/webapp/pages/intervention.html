@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0,user-scalable=no,minimal-ui">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="../img/asset-favico.ico">
+    <title>传智健康</title>
+    <link rel="stylesheet" href="../css/page-health-order.css" />
+    <link rel="stylesheet" href="../css/elementUi.css">
+</head>
+<body data-spy="scroll" data-target="#myNavbar" data-offset="150">
+<div class="app" id="app">
+    <!-- 页面头部 -->
+    <div class="top-header">
+        <span class="f-left"><i class="icon-back" onclick="history.go(-1)"></i></span>
+        <span class="center">健康干预</span>
+        <span class="f-right"><i class="icon-more"></i></span>
+    </div>
+    <!-- 页面内容 -->
+    <div class="contentBox">
+        <div class="box">
+            <template>
+                <div class="block">
+                    <span class="demonstration">选择日期</span>
+                    <el-date-picker
+                            v-model="value2"
+                            type="daterange"
+                            align="right"
+                            unlink-panels
+                            range-separator="至"
+                            start-placeholder="开始日期"
+                            end-placeholder="结束日期"
+                            :picker-options="pickerOptions">
+                    </el-date-picker>
+                    <el-button @click="findOrdersByDate()" class="dalfBut">查询</el-button>
+                </div>
+            </template>
+        </div>
+        <div class="list-column1">
+            <ul class="list">
+                <li class="list-item" v-for="everydata in needList">
+                    <!--返回的map里面的id是order的id,所以everydata.id就是order的id-->
+                    <a class="link-page" :href="'interventionDetail.html?id='+everydata.id">
+                    <div class="project-img">
+                        <img :src="imgUrl" width="100%" height="100%"/>
+                    </div>
+                    <!--<img class="img-object f-left" :src="'http://q15lbtw63.bkt.clouddn.com/'+setmeal.img" alt="">-->
+                        <div class="item-body">
+                            <h4 class="ellipsis item-title">体检人：{{everydata.patientsName}}</h4>
+                            <p class="ellipsis-more item-desc">{{everydata.setmealName}}</p>
+                            <h4>点击查看健康建议</h4>
+                        </div>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+<!-- 页面 css js -->
+<script src="../plugins/vue/vue.js"></script>
+<script src="../plugins/vue/axios-0.18.0.js"></script>
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script>
+    var vue = new Vue ({
+        el:'#app',
+        data: {
+
+            needList:[],
+                pickerOptions: {
+                    shortcuts: [{
+                        text: '最近一周',
+                        onClick(picker) {
+                            const end = new Date();
+                            const start = new Date();
+                            start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
+                            picker.$emit('pick', [start, end]);
+                        }
+                    }, {
+                        text: '最近一个月',
+                        onClick(picker) {
+                            const end = new Date();
+                            const start = new Date();
+                            start.setTime(start.getTime() - 3600 * 1000 * 24 * 30);
+                            picker.$emit('pick', [start, end]);
+                        }
+                    }, {
+                        text: '最近一年',
+                        onClick(picker) {
+                            const end = new Date();
+                            const start = new Date();
+                            start.setTime(start.getTime() - 3600 * 1000 * 24 * 365);
+                            picker.$emit('pick', [start, end]);
+                        }
+                    }]
+                },
+                value2: '',
+                addressId:'',
+        },
+        methods:{
+            findOrdersByDate(){
+                axios.post("/memberOrder/findOrdersByDate.do",this.value2).then((response)=>{
+                    if (response.data.flag) {
+                        this.needList = response.data.data
+                    }else {
+                        this.$message.error(response.data.message)
+                    }
+                })
+            }
+        },
+        mounted (){
+            axios.post("/order/findOrders.do").then((response)=>{
+                if (response.data.flag) {
+                    this.needList = response.data.data
+                }else {
+                    this.$message.error(response.data.message)
+                }
+            });
+           },
+
+        });
+</script>
+</body>
+</html>

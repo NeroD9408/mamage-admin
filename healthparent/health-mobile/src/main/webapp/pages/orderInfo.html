@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0,user-scalable=no,minimal-ui">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <link rel="icon" href="../img/asset-favico.ico">
+        <title>编辑信息</title>
+
+        <!--引用百度地图API-->
+        <style type="text/css">
+            html,body{margin:0;padding:0;}
+            .iw_poi_title {color:#CC5522;font-size:14px;font-weight:bold;overflow:hidden;padding-right:13px;white-space:nowrap}
+            .iw_poi_content {font:12px arial,sans-serif;overflow:visible;padding-top:4px;white-space:-moz-pre-wrap;word-wrap:break-word}
+        </style>
+        <script type="text/javascript" src="http://api.map.baidu.com/api?key=&v=1.1&services=true"></script>
+
+        <link rel="stylesheet" href="../css/page-health-orderInfo.css" />
+        <link rel="stylesheet" href="../plugins/elementui/index.css" />
+        <script src="../plugins/jquery/dist/jquery.min.js"></script>
+        <script src="../plugins/healthmobile.js"></script>
+        <script src="../plugins/datapicker/datePicker.js"></script>
+        <script src="../plugins/vue/vue.js"></script>
+        <script src="../plugins/vue/axios-0.18.0.js"></script>
+        <script src="../plugins/elementui/index.js"></script>
+
+
+        <script>
+            var id = getUrlParam("id");
+        </script>
+
+    </head>
+    <body data-spy="scroll" data-target="#myNavbar" data-offset="150">
+        <div id="app" class="app">
+            <!-- 页面头部 -->
+            <div class="top-header">
+                <span class="f-left"><i class="icon-back" onclick="history.go(-1)"></i></span>
+                <span class="center">传智健康</span>
+                <span class="f-right"><i class="icon-more"></i></span>
+            </div>
+            <!-- 页面内容 -->
+            <div class="contentBox">
+                <div class="card">
+                    <div class="">
+                        <img :src="'http://q15lbtw63.bkt.clouddn.com/'+setmeal.img" width="100%" height="100%" />
+                    </div>
+                    <div class="project-text">
+                        <h4 class="tit">{{setmeal.name}}</h4>
+                        <p class="subtit">{{setmeal.remark}}</p>
+                        <p class="subtit">{{orderInfo.addressName}}</p>
+                        <p class="keywords">
+                            <span>{{setmeal.sex == '0' ? '性别不限' : setmeal.sex == '1' ? '男':'女'}}</span>
+                            <span>{{setmeal.age}}</span>
+                        </p>
+                    </div>
+                    <div class="project-know">
+                        <a href="orderNotice.html" class="link-page">
+                            <i class="icon-ask-circle"><span class="path1"></span><span class="path2"></span></i>
+                            <span class="word">预约须知</span>
+                            <span class="arrow"><i class="icon-rit-arrow"></i></span>
+                        </a>
+                    </div>
+                </div>
+                <div class="form-info">
+                    <div class="info-title">
+                        <span class="name">体检人信息</span>
+                    </div>
+                    <form class="info-form">
+                        <div class="input-row">
+                            <label>体检人</label>
+                            <input v-model="orderInfo.name" type="text" class="input-clear" placeholder="请输入姓名">
+                        </div>
+                        <div class="input-row single-radio">
+                            <label class="radio-title">性别</label>
+                            <div class="radio-list">
+                                <div class="radio">
+                                    <input v-model="orderInfo.sex" id="item1" type="radio" name="sex" value="1" checked>
+                                    <label for="item1"></label>
+                                    <span>男</span>
+                                </div>
+                                <div class="radio">
+                                    <input v-model="orderInfo.sex" id="item2" type="radio" name="sex" value="2">
+                                    <label for="item2"></label>
+                                    <span>女</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="input-row">
+                            <label>年龄</label>
+                            <input v-model="orderInfo.age" type="text" class="input-clear" placeholder="请输入年龄">
+                        </div>
+                        <div class="input-row">
+                            <label>手机号</label>
+                            <input v-model="orderInfo.telephone" type="text" class="input-clear" placeholder="请输入手机号">
+                            <input style="font-size: x-small;" id="validateCodeButton" @click="sendValidateCode()" type="button" value="发送验证码">
+                        </div>
+                        <div class="input-row">
+                            <label>验证码</label>
+                            <input v-model="orderInfo.validateCode" type="text" class="input-clear" placeholder="请输入验证码">
+                        </div>
+                        <div class="input-row">
+                            <label>身份证号</label>
+                            <input v-model="orderInfo.idCard" type="text" class="input-clear" placeholder="请输入身份证号">
+                        </div>
+                        <div class="date">
+                            <label>体检日期</label>
+                            <i class="icon-date" class="picktime"></i>
+                            <input v-model="orderInfo.orderDate" type="text" class="picktime" readonly>
+                        </div>
+
+
+                        <div class="input-row">
+                            <!--客户打开地图选择地址之后,会实时回显,&ensp;是空格,多来几个,好看点-->
+                            <label>机构地址 &ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;{{orderInfo.addressName}}</label>
+                            <el-button icon="el-icon-location" round type="primary" class="butT" @click="openMap()">点击选择医院地址</el-button>
+                        </div>
+
+
+                        <div class="add-form">
+                        <el-dialog title="选择体检地址" :visible.sync="dialogMapVisible">
+                            <!--百度地图容器-->
+                            <div v-model="orderInfo.addressName" style="width:750px;height:350px;border:#ccc solid 1px; margin-bottom: 20px" id="dituContent"></div>
+                        </el-dialog>
+                        </div>
+
+
+                    </form>
+                    <div class="box-button">
+                        <button @click="submitOrder()" type="button" class="btn order-btn">提交预约</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+            var vue = new Vue({
+                el:'#app',
+                data:{
+                    setmeal:{},//套餐信息
+                    orderInfo:{
+                        setmealId:id,
+                        sex:'1',
+                        addressName:""
+                    }, //预约信息
+                    allAddressData:[
+                                               /* {title:"美年大健康(滨湖徽州大道体检部)",point:"117.293609|31.74217",isOpen:0,icon:{w:21,h:21,l:0,t:0,x:6,lb:5}}
+                            ,{title:"美年大健康(蜀山香樟大道体检部)",point:"117.177907|31.828572",isOpen:0,icon:{w:21,h:21,l:0,t:0,x:6,lb:5}}
+                            ,{title:"美年大健康(庐阳清源路体检部)",point:"117.261845|31.894325",isOpen:0,icon:{w:21,h:21,l:0,t:0,x:6,lb:5}}
+                            ,{title:"美年大健康(蜀山繁华大道体检部)",point:"117.153761|31.785366",isOpen:0,icon:{w:21,h:21,l:0,t:0,x:6,lb:5}}
+                            ,{title:"美年大健康(瑶海长江东路体检部)",point:"117.36188|31.875684",isOpen:1,icon:{w:21,h:21,l:0,t:0,x:6,lb:5}}
+*/
+
+                    ],
+                    dialogMapVisible:false
+
+                },
+                methods:{
+
+                    openMap(){
+                        this.dialogMapVisible=true;
+
+
+                        //再发一个异步请求,根据套餐的id查询出所有可以预约的机构,这个是地图用的
+                        axios.post("/address/findAllAddressDataBySetmealId.do?id="+id).then(res=>{
+
+                            vue.allAddressData = res.data.data;
+
+                            //创建和初始化地图函数：
+                            function initMap(){
+                                createMap();//创建地图
+                                setMapEvent();//设置地图事件
+                                addMapControl();//向地图添加控件
+                                addMarker();//向地图中添加marker
+                            }
+
+                            //创建地图函数：
+                            function createMap(){
+                                var map = new BMap.Map("dituContent");//在百度地图容器中创建一个地图
+                                var point = new BMap.Point(117.307982,31.868324);//定义一个中心点坐标
+                                map.centerAndZoom(point,13);//设定地图的中心点和坐标并将地图显示在地图容器中
+                                window.map = map;//将map变量存储在全局
+                            }
+
+                            //地图事件设置函数：
+                            function setMapEvent(){
+                                map.enableDragging();//启用地图拖拽事件，默认启用(可不写)
+                                map.enableScrollWheelZoom();//启用地图滚轮放大缩小
+                                map.enableDoubleClickZoom();//启用鼠标双击放大，默认启用(可不写)
+                                map.enableKeyboard();//启用键盘上下左右键移动地图
+                            }
+
+                            //地图控件添加函数：
+                            function addMapControl(){
+                                //向地图中添加缩放控件
+                                var ctrl_nav = new BMap.NavigationControl({anchor:BMAP_ANCHOR_TOP_LEFT,type:BMAP_NAVIGATION_CONTROL_LARGE});
+                                map.addControl(ctrl_nav);
+                                //向地图中添加缩略图控件
+                                var ctrl_ove = new BMap.OverviewMapControl({anchor:BMAP_ANCHOR_BOTTOM_RIGHT,isOpen:0});
+                                map.addControl(ctrl_ove);
+                                //向地图中添加比例尺控件
+                                var ctrl_sca = new BMap.ScaleControl({anchor:BMAP_ANCHOR_BOTTOM_LEFT});
+                                map.addControl(ctrl_sca);
+                            }
+
+                            //标注点数组
+                            var markerArr = vue.allAddressData;//它的值动态获取
+                            /*[{title:"美年大健康(滨湖徽州大道体检部)",point:"117.293609|31.74217",isOpen:0,icon:{w:21,h:21,l:0,t:0,x:6,lb:5}}
+                                                      ,{title:"美年大健康(蜀山香樟大道体检部)",point:"117.177907|31.828572",isOpen:0,icon:{w:21,h:21,l:0,t:0,x:6,lb:5}}
+                                                      ,{title:"美年大健康(庐阳清源路体检部)",point:"117.261845|31.894325",isOpen:0,icon:{w:21,h:21,l:0,t:0,x:6,lb:5}}
+                                                      ,{title:"美年大健康(蜀山繁华大道体检部)",point:"117.153761|31.785366",isOpen:0,icon:{w:21,h:21,l:0,t:0,x:6,lb:5}}
+                                                      ,{title:"美年大健康(瑶海长江东路体检部)",point:"117.36188|31.875684",isOpen:1,icon:{w:21,h:21,l:0,t:0,x:6,lb:5}}
+                                                      ];*/
+                            //创建marker
+                            function addMarker(){
+                                for(var i=0;i<markerArr.length;i++){
+                                    var json = markerArr[i];
+                                    var p0 = json.point.split("|")[0];
+                                    var p1 = json.point.split("|")[1];
+                                    var point = new BMap.Point(p0,p1);
+                                    var iconImg = createIcon(json.icon);
+                                    var marker = new BMap.Marker(point,{icon:iconImg});
+                                    var iw = createInfoWindow(i);
+                                    var label = new BMap.Label(json.title,{"offset":new BMap.Size(json.icon.lb-json.icon.x+10,-20)});
+                                    marker.setLabel(label);
+                                    map.addOverlay(marker);
+                                    label.setStyle({
+                                        borderColor:"#808080",
+                                        color:"#333",
+                                        cursor:"pointer"
+                                    });
+
+                                    (function(){
+                                        var index = i;
+                                        var _iw = createInfoWindow(i);
+                                        var _marker = marker;
+                                        _marker.addEventListener("click",function(){
+                                            //alert(_iw.content);
+                                            vue.orderInfo.addressName=_iw.content;
+                                            //alert(vue.orderInfo.addressName);
+
+                                            this.openInfoWindow(_iw);
+                                        });
+                                        _iw.addEventListener("open",function(){
+
+                                            _marker.getLabel().hide();
+                                        })
+                                        _iw.addEventListener("close",function(){
+
+                                            _marker.getLabel().show();
+                                        })
+                                        label.addEventListener("click",function(){
+
+                                            _marker.openInfoWindow(_iw);
+                                        })
+                                        if(!!json.isOpen){
+                                            label.hide();
+                                            _marker.openInfoWindow(_iw);
+                                        }
+                                    })()
+                                }
+                            }
+                            //创建InfoWindow,信息窗口
+                            function createInfoWindow(i){
+                                var json = markerArr[i];
+
+                                var iw = new BMap.InfoWindow(json.title);
+                                return iw;
+                            }
+                            //创建一个Icon 图标
+                            function createIcon(json){
+                                //这里是设置位置小图标的,img4是红色的小十字医院标志
+                                var icon = new BMap.Icon("../img/img4.jpg", new BMap.Size(json.w,json.h),{imageOffset: new BMap.Size(-json.l,-json.t),infoWindowOffset:new BMap.Size(json.lb+5,1),offset:new BMap.Size(json.x,json.h)})
+                                return icon;
+                            }
+
+                            initMap();//创建和初始化地图
+
+
+
+                        });
+
+                    },
+
+
+                    //发送验证码
+                    sendValidateCode(){
+                        var telephone=this.orderInfo.telephone;
+                        if(!checkTelephone(telephone)){
+                            //说明验证手机号验证失败了
+                            this.$message.error('请输入正确手机号');
+                            return false;
+                        }
+                        //能走到这一步说明手机号格式验证是正确的
+                        validateCodeButton=$("#validateCodeButton")[0];
+                        //alert(validateCodeButton)/后面不加[0],弹出的是 object Object ,加了[0] 弹出的是object HTMLInputElement
+                        clock=window.setInterval(doLoop,1000);
+                        axios.get("/validateCode/sendValidateCode.do?telephone="+telephone).then((res)=>{
+                            //发送成功了就不用管了,不成功的时候给个提示
+                            if(res.data.flag){
+
+                            }else{
+                                this.$message.error(res.data.flag);
+                            }
+                        })
+
+                    },
+                    //提交预约
+                    submitOrder(){
+                        var idCard=this.orderInfo.idCard;
+                        if(!checkIdCard(idCard)){
+                            //如果身份证验证不通过,提示
+                            this.$message.error("身份证信息有误,请检查后再填写,谢谢!");
+                            return false;
+                        }
+                        //走到这一步说明身份证验证无误
+                        axios.post("/order/submit.do",this.orderInfo).then((res)=>{
+                            if(res.data.flag){
+                                //预约成功的话,跳转到预约成功页面,并且要携带order的id
+                                window.location.href="orderSuccess.html?orderId="+res.data.data;
+                            }else{
+                                this.$message.error(res.data.message);
+                            }
+                        })
+                    }
+                },
+                mounted() {
+                    axios.post("/setmeal/findSetmealById.do?id=" + id).then((res) => {
+                        if(res.data.flag){
+                            this.setmeal = res.data.data;
+                        }
+                    });
+                }
+
+            });
+        </script>
+        <script>
+            //日期控件
+            var calendar = new datePicker();
+            calendar.init({
+                'trigger': '.picktime',/*按钮选择器，用于触发弹出插件*/
+                'type': 'date',/*模式：date日期；datetime日期时间；time时间；ym年月；*/
+                'minDate': getSpecifiedDate(new Date(),1),/*最小日期*/
+                'maxDate': getSpecifiedDate(new Date(),30),/*最大日期*/
+                'onSubmit': function() { /*确认时触发事件*/
+                    //var theSelectData = calendar.value;
+                },
+                'onClose': function() { /*取消时触发事件*/ }
+            });
+        </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </body>
+</html>

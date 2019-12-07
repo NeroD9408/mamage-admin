@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- 页面meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>传智健康</title>
+    <meta name="description" content="传智健康">
+    <meta name="keywords" content="传智健康">
+    <meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" name="viewport">
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="../plugins/elementui/index.css">
+    <link rel="stylesheet" href="../plugins/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <!-- 引入组件库 -->
+    <script type="text/javascript" src="../js/jquery.min.js"></script>
+    <script src="../js/vue.js"></script>
+    <script src="../plugins/elementui/index.js"></script>
+    <script src="../js/axios-0.18.0.js"></script>
+    <style>
+        .avatar-uploader .el-upload {
+            border: 1px dashed #d9d9d9;
+            border-radius: 6px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .avatar-uploader .el-upload:hover {
+            border-color: #409EFF;
+        }
+
+        .avatar-uploader-icon {
+            font-size: 28px;
+            color: #8c939d;
+            width: 178px;
+            height: 178px;
+            line-height: 178px;
+            text-align: center;
+        }
+
+        .avatar {
+            width: 178px;
+            height: 178px;
+            display: block;
+        }
+
+        .datatable {
+            position: relative;
+            box-sizing: border-box;
+            -webkit-box-flex: 1;
+            width: 100%;
+            max-width: 100%;
+            font-size: 14px;
+            color: rgb(96, 98, 102);
+            overflow: hidden;
+            flex: 1 1 0%;
+        }
+
+        .datatable td, .datatable th {
+            padding: 12px 0;
+            min-width: 0;
+            -webkit-box-sizing: border-box;
+            box-sizing: border-box;
+            text-overflow: ellipsis;
+            vertical-align: middle;
+            position: relative;
+            text-align: left;
+        }
+
+        .button {
+            padding: 7px 6px;
+        }
+
+        .etc {
+            padding: 0px 50px;
+        }
+
+        .el-dropdown-link {
+            cursor: pointer;
+            color: #409EFF;
+        }
+
+        .el-icon-arrow-down {
+            font-size: 12px;
+        }
+
+        .demonstration {
+            display: block;
+            color: #8492a6;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+    </style>
+
+</head>
+<body class="hold-transition">
+<div id="app">
+    <div class="content-header">
+        <h1>预约管理
+            <small>预约列表</small>
+        </h1>
+        <el-breadcrumb separator-class="el-icon-arrow-right" class="breadcrumb">
+            <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+            <el-breadcrumb-item>预约管理</el-breadcrumb-item>
+            <el-breadcrumb-item>预约列表</el-breadcrumb-item>
+        </el-breadcrumb>
+    </div>
+    <div class="app-container">
+        <div class="box">
+            <div class="filter-container">
+                <el-input placeholder="体检人姓名/手机号" v-model="pagination.queryString" style="width: 200px;"
+                          class="filter-item" @keyup.enter.native="handleFilter"></el-input>
+                <el-date-picker
+                        v-model="pagination.dateRange"
+                        type="daterange"
+                        align="right"
+                        style="width: 255px"
+                        unlink-panels
+                        range-separator="至"
+                        start-placeholder="开始日期"
+                        end-placeholder="结束日期"
+                        value-format="yyyy-MM-dd"
+                        @change="dateChange"
+                        :picker-options="pickerOptions">
+                </el-date-picker>
+                <template>
+                    <el-select v-model="pagination.type" placeholder="预约方式" style="width: 150px" clearable="true">
+                        <el-option
+                                v-for="item in options1"
+                                :key="item.value"
+                                :label="item.label"
+                                :value="item.value">
+                        </el-option>
+                    </el-select>
+                </template>
+                <template>
+                    <el-select v-model="pagination.status" placeholder="是否到诊" style="width: 150px" clearable="true">
+                        <el-option
+                                v-for="item in options2"
+                                :key="item.value"
+                                :label="item.label"
+                                :value="item.value">
+                        </el-option>
+                    </el-select>
+                </template>
+                <el-button @click="findPage2()" class="dalfBut">查询</el-button>
+                <el-button type="primary" class="butT" @click="handleCreate()">预约</el-button>
+                <el-button type="primary" class="butT" @click="clear()">清除</el-button>
+            </div>
+            <el-table size="small" current-row-key="id" :data="dataList" stripe highlight-current-row>
+                <el-table-column type="index" align="center" label="序号"></el-table-column>
+                <el-table-column prop="userName" label="姓名" align="center" sortable width="90px"></el-table-column>
+                <el-table-column prop="sex" label="性别" align="center" sortable width="90px">
+                    <template slot-scope="scope">
+                        <span>{{ scope.row.sex == '1' ? '男' : '女'}}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="phoneNumber" label="电话号码" align="center" sortable
+                                 width="130px"></el-table-column>
+                <el-table-column prop="code" label="套餐编码" align="center" sortable width="100px"></el-table-column>
+                <el-table-column prop="orderStatus" label="是否就诊" width="180px" align="center">
+                    <template slot-scope="scope">
+                        <el-switch
+                                v-model="scope.row.orderStatus"
+                                active-color="#13ce66"
+                                inactive-color="#ff4949"
+                                active-text="已到诊"
+                                inactive-text="未到诊"
+                                :active-value="true"
+                                :inactive-value="false"
+                                @change=changeStatus(scope.row)>
+                        </el-switch>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="name" label="套餐名称" align="center" sortable width="150px"></el-table-column>
+                <el-table-column prop="helpCode" label="助记码" align="center" sortable width="100px"></el-table-column>
+                <el-table-column prop="orderDate" label="预约时间" align="center" sortable width="100px"></el-table-column>
+                <el-table-column prop="location" label="地址" align="center"width="220px"></el-table-column>
+                <el-table-column label="预约方式" align="center" width="80">
+                    <template slot-scope="scope">
+                        <span>{{ scope.row.orderType == '微信预约' ? '微信预约' : '电话预约'}}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column label="操作" align="center" width="150px" fixed="right">
+                    <template slot-scope="scope">
+                        <el-button type="primary" size="mini" @click="handleEdit(scope.row)" class="button">编辑
+                        </el-button>
+                        <el-button size="mini" type="danger" @click="handleDelete(scope.row)" class="button">删除
+                        </el-button>
+                    </template>
+                </el-table-column>
+
+            </el-table>
+            <div class="pagination-container">
+                <el-pagination
+                        class="pagiantion"
+                        @current-change="handleCurrentChange"
+                        :current-page="pagination.currentPage"
+                        :page-size="pagination.pageSize"
+                        layout="total, prev, pager, next, jumper"
+                        :total="pagination.total">
+                </el-pagination>
+            </div>
+            <!-- 新增标签弹层 -->
+            <div class="add-form">
+                <el-dialog title="新增套餐" :visible.sync="dialogFormVisible">
+                    <template>
+                        <el-tabs v-model="activeName" type="card">
+                            <el-tab-pane label="基本信息" name="first">
+                                <el-form ref="dataAddForm" :model="formData" :rules="rules" label-position="right" label-width="100px">
+                                    <el-row>
+                                        <el-col :span="12">
+                                            <el-form-item label="姓名"  prop="userName">
+                                                <el-input v-model="formData.userName"/>
+                                            </el-form-item>
+                                        </el-col>
+                                        <el-col :span="12">
+                                            <el-form-item label="年龄">
+                                                <el-input v-model="formData.age"/>
+                                            </el-form-item>
+                                        </el-col>
+                                    </el-row>
+                                    <el-row>
+                                        <el-col :span="12">
+                                            <el-form-item label="身份证号码" prop="idCard">
+                                                <el-input v-model="formData.idCard"/>
+                                            </el-form-item>
+                                        </el-col>
+                                        <el-col :span="12">
+                                            <el-form-item label="电话号码" prop="phoneNumber">
+                                                <el-input v-model="formData.phoneNumber"/>
+                                            </el-form-item>
+                                        </el-col>
+                                    </el-row>
+                                    <el-row>
+                                        <el-col :span="12">
+                                            <el-form-item label="性别">
+                                                <el-select v-model="formData.sex">
+                                                    <el-option label="男" value="1"></el-option>
+                                                    <el-option label="女" value="2"></el-option>
+                                                </el-select>
+                                            </el-form-item>
+                                        </el-col>
+                                        <el-col :span="12">
+                                            <el-form-item label="预约方式">
+                                                <el-select v-model="formData.orderType">
+                                                    <el-option label="微信预约" value="微信预约"></el-option>
+                                                    <el-option label="电话预约" value="电话预约"></el-option>
+                                                </el-select>
+                                            </el-form-item>
+                                        </el-col>
+                                    </el-row>
+                                    <el-row>
+                                        <el-col :span="12">
+                                            <el-form-item label="日期">
+                                                <template>
+                                                    <div class="block">
+                                                        <el-date-picker
+                                                                v-model="formData.orderDate"
+                                                                type="date"
+                                                                placeholder="选择日期"
+                                                                value-format="yyyy-MM-dd">
+                                                        </el-date-picker>
+                                                    </div>
+                                                </template>
+                                            </el-form-item>
+                                        </el-col>
+                                        <el-col :span="12">
+                                            <el-form-item label="机构">
+                                                <template>
+                                                    <el-select v-model="formData.address" placeholder="请选择">
+                                                        <el-option
+                                                                v-for="item in options"
+                                                                :key="item.id"
+                                                                :label="item.name"
+                                                                :value="item.id">
+                                                        </el-option>
+                                                    </el-select>
+                                                </template>
+                                            </el-form-item>
+                                        </el-col>
+                                    </el-row>
+                                </el-form>
+                            </el-tab-pane>
+                            <el-tab-pane label="套餐信息" name="second">
+                                <div class="checkScrol">
+                                    <table class="datatable">
+                                        <thead>
+                                        <tr>
+                                            <th>选择</th>
+                                            <th>套餐编码</th>
+                                            <th>套餐名称</th>
+                                            <th>套餐说明</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <tr v-for="c in tableData">
+                                            <td>
+                                                <input :id="c.id" v-model="checkSetMealIds" type="checkbox"
+                                                       :value="c.id" @change="getAddress">
+                                            </td>
+                                            <td><label :for="c.id">{{c.code}}</label></td>
+                                            <td><label :for="c.id">{{c.name}}</label></td>
+                                            <td><label :for="c.id">{{c.remark}}</label></td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </el-tab-pane>
+                        </el-tabs>
+                    </template>
+                    <div slot="footer" class="dialog-footer">
+                        <el-button @click="dialogFormVisible = false">取消</el-button>
+                        <el-button type="primary" @click="handleAdd()">确定</el-button>
+                    </div>
+                </el-dialog>
+            </div>
+            <!--编辑标签弹层-->
+            <div class="add-form">
+                <el-dialog title="编辑套餐" :visible.sync="dialogFormVisibleEdit">
+                    <template>
+                        <el-tabs v-model="activeName" type="card">
+                            <el-tab-pane label="基本信息" name="first">
+                                <el-form label-position="right" label-width="100px" ref="dataAddForm" :model="formData" :rules="rules">
+                                    <el-row>
+                                        <el-col :span="12">
+                                            <el-form-item label="姓名"  prop="userName">
+                                                <el-input v-model="formData.userName"/>
+                                            </el-form-item>
+                                        </el-col>
+                                        <el-col :span="12">
+                                            <el-form-item label="年龄">
+                                                <el-input v-model="formData.age"/>
+                                            </el-form-item>
+                                        </el-col>
+                                    </el-row>
+                                    <el-row>
+                                        <el-col :span="12">
+                                            <el-form-item label="身份证号码" prop="idCard">
+                                                <el-input v-model="formData.idCard"/>
+                                            </el-form-item>
+                                        </el-col>
+                                        <el-col :span="12">
+                                            <el-form-item label="电话号码" prop="phoneNumber">
+                                                <el-input v-model="formData.phoneNumber"/>
+                                            </el-form-item>
+                                        </el-col>
+                                    </el-row>
+                                    <el-row>
+                                        <el-col :span="12">
+                                            <el-form-item label="性别">
+                                                <el-select v-model="formData.sex">
+                                                    <el-option label="男" value="1"></el-option>
+                                                    <el-option label="女" value="2"></el-option>
+                                                </el-select>
+                                            </el-form-item>
+                                        </el-col>
+                                        <el-col :span="12">
+                                            <el-form-item label="预约方式">
+                                                <el-select v-model="formData.orderType">
+                                                    <el-option label="微信预约" value="微信预约"></el-option>
+                                                    <el-option label="电话预约" value="电话预约"></el-option>
+                                                </el-select>
+                                            </el-form-item>
+                                        </el-col>
+                                    </el-row>
+                                    <el-row>
+                                        <el-col :span="12">
+                                            <el-form-item label="日期">
+                                                <template>
+                                                    <div class="block">
+                                                        <el-date-picker
+                                                                v-model="formData.orderDate"
+                                                                type="date"
+                                                                placeholder="选择日期"
+                                                                value-format="yyyy-MM-dd">
+                                                        </el-date-picker>
+                                                    </div>
+                                                </template>
+
+                                            </el-form-item>
+                                        </el-col>
+                                        <el-col :span="12">
+                                            <el-form-item label="机构">
+                                                <template>
+                                                    <el-select v-model="formData.address" placeholder="请选择">
+                                                        <el-option
+                                                                v-for="item in options"
+                                                                :key="item.id"
+                                                                :label="item.name"
+                                                                :value="item.id">
+                                                        </el-option>
+                                                    </el-select>
+                                                </template>
+                                            </el-form-item>
+                                        </el-col>
+                                    </el-row>
+                                </el-form>
+                            </el-tab-pane>
+                            <el-tab-pane label="套餐信息" name="second">
+                                <div class="checkScrol">
+                                    <table class="datatable">
+                                        <thead>
+                                        <tr>
+                                            <th>选择</th>
+                                            <th>套餐编码</th>
+                                            <th>套餐名称</th>
+                                            <th>套餐说明</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <tr v-for="c in tableData">
+                                            <td>
+                                                <input :id="c.id" v-model="checkSetMealIds" type="checkbox"
+                                                       :value="c.id" @change="getAddress">
+                                            </td>
+                                            <td><label :for="c.id">{{c.code}}</label></td>
+                                            <td><label :for="c.id">{{c.name}}</label></td>
+                                            <td><label :for="c.id">{{c.remark}}</label></td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </el-tab-pane>
+                        </el-tabs>
+                    </template>
+                    <div slot="footer" class="dialog-footer">
+                        <el-button @click="dialogFormVisibleEdit = false">取消</el-button>
+                        <el-button type="primary" @click="handleUpdate()">确定</el-button>
+                    </div>
+                </el-dialog>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+
+<script>
+
+    //预约列表:
+    //预约人的信息:姓名  性别   身份证   电话号码            套餐信息
+    var vue = new Vue({
+        el: '#app',
+        data: {
+            pickerOptions: {
+                shortcuts: [{
+                    text: '最近一周',
+                    onClick(picker) {
+                        const end = new Date();
+                        const start = new Date();
+                        start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
+                        picker.$emit('pick', [start, end]);
+                    }
+                }, {
+                    text: '最近一个月',
+                    onClick(picker) {
+                        const end = new Date();
+                        const start = new Date();
+                        start.setTime(start.getTime() - 3600 * 1000 * 24 * 30);
+                        picker.$emit('pick', [start, end]);
+                    }
+                }, {
+                    text: '最近三个月',
+                    onClick(picker) {
+                        const end = new Date();
+                        const start = new Date();
+                        start.setTime(start.getTime() - 3600 * 1000 * 24 * 90);
+                        picker.$emit('pick', [start, end]);
+                    }
+                }]
+            },
+            options1: [{
+                value: '微信预约',
+                label: '微信预约'
+            }, {
+                value: '电话预约',
+                label: '电话预约'
+            }],
+            options2: [{
+                value: '已到诊',
+                label: '已到诊'
+            }, {
+                value: '未到诊',
+                label: '未到诊'
+            }],
+            options:[],
+            activeName: 'first',//添加/编辑窗口Tab标签名称
+            pagination: {//分页相关属性
+                currentPage: 1,
+                pageSize: 10,
+                total: 100,
+                type: '',
+                status: '',
+                dateRange: '',
+                queryString: null
+            },
+            dataList: [],//列表数据
+            formData: {},//表单数据
+            tableData: [],//添加表单窗口中检查组列表数据
+            checkSetMealIds: [],//添加表单窗口中检查组复选框对应id
+            dialogFormVisible: false,//控制添加窗口显示/隐藏
+            dialogFormVisibleEdit: false,
+            orderStatus:null,
+            rules: {//校验规则
+                userName: [{ required: true, message: '项目编码为必填项', trigger: 'blur' },
+                    { min: 2, max: 5, message: '长度在 2 到 5 个字符', trigger: 'blur' }],
+                phoneNumber: [{ required: true, message: '项目名称为必填项', trigger: 'blur' },
+                    { min: 11, max: 11, message: '长度为11位整数', trigger: 'blur' }],
+                idCard: [{ required: true, message: '项目名称为必填项', trigger: 'blur' },
+                    { min: 18, max: 18, message: '长度为18位整数', trigger: 'blur' }]
+            }
+        },
+        created() {
+            this.findPage();
+        },
+        methods: {
+            clear(){
+                this.pagination.type = null;
+                this.pagination.status = null;
+                this.pagination.queryString = null;
+                this.pagination.dateRange = null
+            },
+            getAddress(){
+                axios.post("/orderSettingList/getAddress.do?setMealId=" + this.checkSetMealIds).then((res)=>{
+                    this.options = res.data.data;
+                })
+            },
+            changeStatus(row) {
+                axios.post("/orderSettingList/changeStatus.do", {
+                    "orderId":row.id,
+                    "orderStatus": row.orderStatus
+                }).then((res) => {
+                    if (res.data.flag) {
+                        this.findPage2();
+                        this.$message({
+                            type: 'success',
+                            message: res.data.message
+                        })
+                    } else {
+                        this.orderStatus = !this.orderStatus;
+                        this.findPage();
+                        this.$message.error(res.data.message)
+                    }
+                });
+            },
+            handleUpdate() {
+                this.dialogFormVisibleEdit = false;
+                axios.post("/orderSettingList/update.do?checkSetMealId=" + this.checkSetMealIds, this.formData)
+                    .then((res) => {
+                        this.dialogFormVisible = false;
+                        if (res.data.flag) {
+                            this.findPage();
+                            this.$message({
+                                message: res.data.message,
+                                type: 'success'
+                            })
+                        } else {
+                            this.$message.error(res.data.message);
+                        }
+                    })
+            },
+            //添加
+            handleAdd() {
+                this.dialogFormVisible = false;
+                axios.post("/orderSettingList/add.do?checkSetMealIds=" + this.checkSetMealIds, this.formData)
+                    .then((res) => {
+                        if (res.data.flag) {
+                            this.findPage();
+                            this.$message({
+                                message: res.data.message,
+                                type: 'success'
+                            })
+                        } else {
+                            this.$message.error(res.data.message);
+                        }
+                    })
+            },
+            findPage2() {
+                if (this.pagination.currentPage > 1) {
+                    this.pagination.currentPage = 1;
+                }
+                this.findPage();
+            },
+            //分页查询
+            findPage() {
+                axios.post("/orderSettingList/queryPage.do",
+                    {
+                        currentPage: this.pagination.currentPage,
+                        pageSize: this.pagination.pageSize,
+                        type: this.pagination.type,
+                        status: this.pagination.status,
+                        dateRange: this.pagination.dateRange,
+                        queryString: this.pagination.queryString
+                    }
+                ).then((res) => {
+                    this.pagination.total = res.data.total;
+                    this.dataList = res.data.rows;
+                })
+            },
+            // 重置表单
+            resetForm() {
+                this.formData = {};
+                this.imageUrl = null;
+                this.checkSetMealIds = [];
+                this.options = []
+            },
+            //弹出编辑窗口
+            handleEdit(row) {
+                this.dialogFormVisibleEdit = true;
+                this.resetForm();
+                axios.get("/setmeal/findAll.do").then((res) => {
+                    if (res.data.flag) {
+                        this.tableData = res.data.data;
+                        axios.get("/setmeal/getCheckIds.do?orderId="+row.id).then((res) => {
+                            this.checkSetMealIds = res.data.data;
+                        })
+                    } else {
+                        this.$message.error(res.data.message);
+                    }
+                });
+                axios.post("/orderSettingList/getAddressByOrderId.do?orderId=" + row.id).then((res)=>{
+                    this.options = res.data.data;
+                });
+                axios.get("/orderSettingList/backMessage.do?id="+row.id).then((res)=>{
+                    this.formData = res.data.data;
+                })
+            },
+            // 弹出添加窗口
+            handleCreate() {
+                this.dialogFormVisible = true;
+                this.resetForm();
+                axios.get("/setmeal/findAll.do").then((res) => {
+                    if (res.data.flag) {
+                        this.tableData = res.data.data;
+                    } else {
+                        this.$message.error(res.data.message);
+                    }
+                })
+            },
+            //切换页码
+            handleCurrentChange(currentPage) {
+                this.pagination.currentPage = currentPage;
+                this.findPage()
+            },
+            //删除
+            handleDelete(row) {
+                var id = row.id;
+                this.$confirm('此操作将永久删除该记录, 是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    axios.get("/orderSettingList/delete.do", {
+                        params: {
+                            "orderDate": row.orderDate,
+                            "phoneNumber": row.phoneNumber,
+                            "code": row.code
+                        }
+                    }).then((res) => {
+                        if (res.data.flag) {
+                            this.findPage2();
+                            this.$message({
+                                type: 'success',
+                                message: res.data.message
+                            });
+                        } else {
+                            this.$message.error(res.data.message);
+                        }
+                    })
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消删除'
+                    });
+                });
+            }
+        }
+    })
+</script>
+
+</html>

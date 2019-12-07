@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itheima.dao.OrderDao" >
+    <resultMap id="baseResultMap" type="com.itheima.pojo.Order">
+        <id column="id" property="id"/>
+        <result column="member_id" property="memberId"/>
+        <result column="orderDate" property="orderDate"/>
+        <result column="orderType" property="orderType"/>
+        <result column="orderStatus" property="orderStatus"/>
+        <result column="setmeal_id" property="setmealId"/>
+    </resultMap>
+    <!--新增-->
+    <insert id="add" parameterType="com.itheima.pojo.Order">
+        <selectKey resultType="java.lang.Integer" order="AFTER" keyProperty="id">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        insert into t_order(member_id,orderDate,orderType,orderStatus,setmeal_id,address_id,patientsName,age,sex,idCard)
+        values (#{memberId},#{orderDate},#{orderType},#{orderStatus},#{setmealId},#{addressId},#{patientsName},#{age},#{sex},#{idCard})
+    </insert>
+
+    <!--动态条件查询-->
+    <select id="findByCondition" parameterType="com.itheima.pojo.Order" resultMap="baseResultMap">
+        select * from t_order
+        <where>
+            <if test="id != null">
+                and id = #{id}
+            </if>
+            <if test="memberId != null">
+                and member_id = #{memberId}
+            </if>
+            <if test="orderDate != null">
+                and orderDate = #{orderDate}
+            </if>
+            <if test="orderType != null">
+                and orderType = #{orderType}
+            </if>
+            <if test="orderStatus != null">
+                and orderStatus = #{orderStatus}
+            </if>
+            <if test="setmealId != null">
+                and setmeal_id = #{setmealId}
+            </if>
+            <if test="patientsName != null">
+                and patientsName = #{patientsName}
+            </if>
+            <if test="addressId != null">
+                and address_id = #{addressId}
+            </if>
+        </where>
+    </select>
+
+    <!--根据预约id查询预约信息，包括体检人信息、套餐信息以及所选医院地址-->
+    <select id="findById4Detail" parameterType="int" resultType="map">
+        select o.patientsName member , o.orderStatus, a.name address , s.name setmeal,o.orderDate orderDate,o.orderType orderType
+        from
+          t_order o,
+          t_member m,
+          t_setmeal s,
+          t_address a
+        where o.member_id=m.id and o.setmeal_id=s.id and o.address_id=a.id and o.id=#{id}
+    </select>
+
+    <!--根据日期统计预约数-->
+    <select id="findOrderCountByDate" parameterType="string" resultType="int">
+        select count(id) from t_order where orderDate = #{value}
+    </select>
+
+    <!--根据日期统计预约数，统计指定日期之后的预约数-->
+    <select id="findOrderCountAfterDate" parameterType="string" resultType="int">
+        select count(id) from t_order where orderDate &gt;= #{value}
+    </select>
+
+    <!--根据日期统计到诊数-->
+    <select id="findVisitsCountByDate" parameterType="string" resultType="int">
+        select count(id) from t_order where orderDate = #{value} and orderStatus = '已到诊'
+    </select>
+
+    <!--根据日期统计到诊数，统计指定日期之后的到诊数-->
+    <select id="findVisitsCountAfterDate" parameterType="string" resultType="int">
+        select count(id) from t_order where orderDate &gt;= #{value} and orderStatus = '已到诊'
+    </select>
+
+    <!--热门套餐，查询前5条-->
+    <select id="findHotSetmeal" resultType="map">
+        select s.name, count(o.id) setmeal_count ,count(o.id)/(select count(id) from t_order) proportion
+          from t_order o inner join t_setmeal s on s.id = o.setmeal_id
+          group by o.setmeal_id
+          order by setmeal_count desc limit 0,4
+    </select>
+
+
+    <select id="findCountBySetmealId" parameterType="int" resultType="long">
+        select count(*) from t_order where setmeal_id=#{id}
+    </select>
+
+    <!--查询本月的订单数量-->
+    <select id="findThisMonthOrderNumber" parameterType="map" resultType="Integer">
+        select count(id) from t_order where orderDate BETWEEN #{begin} and #{end}
+    </select>
+
+    <!--获取本月就诊的数量-->
+    <select id="findThisMonthVisitsNumber" parameterType="map" resultType="Integer">
+        select count(id) from t_order where orderDate BETWEEN #{begin} and #{end} and orderStatus = '已到诊'
+    </select>
+
+    <select id="findMemberIdInOrder" parameterType="int" resultType="order">
+        select order from t_order where member_id = #{id}
+    </select>
+
+
+    <select id="findByMemberAndSetMealId" parameterType="map" resultType="order">
+        select * from t_order where member_id = #{memberId} and setmeal_id = #{checkSetMealId} and orderDate = #{date}
+    </select>
+
+    <select id="findOrderByMemberId" parameterType="int" resultType="order">
+        select * from t_order where member_id = #{id}
+    </select>
+
+    <insert id="addOrder" parameterType="order" keyColumn="int" keyProperty="id" useGeneratedKeys="true">
+        insert into t_order (member_id,orderDate,orderType,orderStatus,setmeal_id,address_id,patientsName,age,idCard,sex)
+        values (#{memberId},#{orderDate},#{orderType},#{orderStatus},#{setmealId},#{addressId},#{patientsName},#{age},#{idCard},#{sex})
+    </insert>
+    <delete id="delete" parameterType="map">
+        delete from t_order where orderDate = #{orderDate} and member_id = #{memberId} and setmeal_id = #{setMealId}
+    </delete>
+    <update id="changeStatus" parameterType="map">
+        update t_order set orderStatus = #{orderStatus} where id = #{orderId}
+    </update>
+    <select id="getOrderByCondition" parameterType="map" resultType="map">
+        select * from (select o.patientsName userName,m.sex,m.phoneNumber,
+        o.orderType,o.orderDate,o.orderStatus,o.id,
+        s.code,s.helpCode, s.name,a.location location
+        from t_member m, t_order o, t_setmeal s,t_address a
+        where m.id = o.member_id
+        and o.setmeal_id = s.id and o.address_id = a.id) t
+        <where>
+
+            <if test="status != null and status.length > 0">
+                and t.orderStatus = #{status}
+            </if>
+            <if test="type != null and type.length > 0">
+                and t.orderType = #{type}
+            </if>
+            <if test="dateOne != null and dateTwo != null">
+                and t.orderDate BETWEEN #{dateOne} and #{dateTwo}
+            </if>
+            <if test="dateOne != null and dateTwo == null">
+                and t.orderDate #{dateOne}
+            </if>
+            <if test="dateOne == null and dateTwo != null">
+                and t.orderDate #{dateTwo}
+            </if>
+            <if test="queryString != null and queryString.length > 0">
+               and t.userName like concat('%',#{queryString},'%') or t.phoneNumber like concat('%',#{queryString},'%')
+            </if>
+        </where>
+    </select>
+    <select id="backMessage" parameterType="int" resultType="map">
+            select o.patientsName userName,m.sex,m.phoneNumber,
+            o.orderType,o.orderDate,o.id,o.age,o.idCard
+            from t_member m, t_order o, t_setmeal s
+            where m.id = o.member_id
+            and o.setmeal_id = s.id
+						and o.id = #{id}
+    </select>
+    <update id="update" parameterType="map">
+        update t_order set orderDate = #{orderDate},orderType = #{orderType},setmeal_id = #{checkSetMealId},address_id = #{address},idCard = #{idCard},age = #{age},sex = #{sex} where id = #{id}
+    </update>
+
+    <select id="findOrderIdsByMemberId" parameterType="int" resultType="int">
+        SELECT o.`id` FROM t_order o,t_member m WHERE o.`member_id` = m.`id` and m.id = #{mid}
+    </select>
+
+    <select id="findAll" parameterType="int" resultType="map">
+        SELECT   o.id, o.`patientsName` patientsName,s.`name` setmealName,s.`id` setmealId,s.`img` setmealImg, o.id orderId FROM t_order o,t_setmeal s WHERE o.`setmeal_id`=s.`id` AND o.`id`=#{id}
+    </select>
+
+
+    <select id="findOrderIdsByMemberIdAndDate" parameterType="map" resultType="int">
+        SELECT o.`id` FROM t_order o,t_member m WHERE o.`member_id` = m.`id` AND m.id = #{memberId} AND orderDate BETWEEN #{start} AND #{end}
+    </select>
+
+    <select id="findSeatmealNameIdByOrderId" parameterType="int" resultType="string">
+        SELECT NAME FROM t_setmeal WHERE id =(SELECT setmeal_id FROM t_order WHERE id=#{id})
+    </select>
+
+    <select id="findAllByOrderId" parameterType="int" resultType="order">
+        select * from t_order where id=#{id}
+    </select>
+
+    <select id="findInterventionCountByOrderId" parameterType="int" resultType="int">
+        SELECT intervention_id FROM t_order WHERE id=#{id}
+    </select>
+
+    <update id="updateInterventionId" parameterType="map">
+        UPDATE t_order set intervention_id=#{interventionId} where id=#{orderId}
+    </update>
+
+
+    <select id="findById" parameterType="string" resultType="map">
+        SELECT t1.*, t2.*, t3.`location` FROM t_order t1, t_setmeal t2 ,t_address t3 WHERE t1.`setmeal_id`=t2.`id` AND t1.`address_id`=t3.id AND t1.id = #{id}
+    </select>
+
+
+    <select id="getReportByOrderId" parameterType="int" resultType="map">
+        select checkItemName,result,attention
+        from t_report_item
+        where report_id = (select id from t_report where order_id = #{id})
+    </select>
+
+    <select id="getOrderUser" parameterType="int" resultType="map">
+        select s.name,t.patientsName,t.orderDate from
+        (select patientsName,orderDate,setmeal_id from t_order
+        where id = #{id}) t, t_setmeal s where s.id = t.setmeal_id
+    </select>
+
+    <select id="checkDate" parameterType="map" resultType="order">
+        SELECT * FROM t_order where orderDate &lt;= #{orderDate} and id = #{orderId}
+    </select>
+</mapper>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0,user-scalable=no,minimal-ui">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="../img/asset-favico.ico">
+    <title>传智健康</title>
+    <link rel="stylesheet" href="../css/page-health-orderDetail.css" />
+    <script src="../plugins/vue/vue.js"></script>
+    <script src="../plugins/vue/axios-0.18.0.js"></script>
+    <script src="../plugins/healthmobile.js"></script>
+    <script>
+        var id = getUrlParam("id");
+    </script>
+</head>
+<body data-spy="scroll" data-target="#myNavbar" data-offset="150">
+<div id="app" class="app">
+    <!-- 页面头部 -->
+    <div class="top-header">
+        <span class="f-left"><i class="icon-back" onclick="history.go(-1)"></i></span>
+        <span class="center">传智健康</span>
+        <span class="f-right"><i class="icon-more"></i></span>
+    </div>
+    <!-- 页面内容 -->
+    <div class="contentBox">
+        <div class="card">
+            <div class="project-img">
+                <img :src="imgUrl" width="100%" height="100%" />
+            </div>
+            <div class="project-text">
+                <h4 class="tit">{{order.name}}</h4>
+                <p class="subtit">{{order.remark}}</p>
+                <p class="subtit">套餐价格: {{order.price}}</p>
+                <p class="keywords">
+                    <span>{{order.sex == '0' ? '性别不限' : order.sex == '1' ? '男':'女'}}</span>
+                    <span>{{order.age}}</span>
+                </p>
+            </div>
+            <!--<div class="project-know">
+                <a href="orderNotice.html" class="link-page">
+                    <i class="icon-ask-circle"><span class="path1"></span><span class="path2"></span></i>
+                    <span class="word">预约须知</span>
+                    <span class="arrow"><i class="icon-rit-arrow"></i></span>
+                </a>
+            </div>-->
+        </div>
+        <div class="table-listbox">
+            <div class="box-title">
+                <i class="icon-zhen"><span class="path1"></span><span class="path2"></span></i>
+                <span>预约人: {{order.patientsName}}</span>
+                <!--<span>预约方式：{{member.orderType}}</span>
+                <span>预约时间：{{member.orderDate}}</span>
+                <span>到诊情况：{{member.orderStatus}}</span>
+                <span>预约体检机构地址：{{member.location}}</span>-->
+            </div>
+            <div class="box-title">
+                <i class="icon-zhen"><span class="path1"></span><span class="path2"></span></i>
+                <span>预约方式: {{order.orderType}}</span>
+            </div>
+            <div class="box-title">
+                <i class="icon-zhen"><span class="path1"></span><span class="path2"></span></i>
+                <span>预约时间: {{order.orderDate}}</span>
+            </div>
+            <div class="box-title">
+                <i class="icon-zhen"><span class="path1"></span><span class="path2"></span></i>
+                <span>到诊情况: {{order.orderStatus}}</span>
+            </div>
+            <div class="box-title">
+                <i class="icon-zhen"><span class="path1"></span><span class="path2"></span></i>
+                <span>预约体检机构地址: {{order.location}}</span>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    var vue = new Vue({
+        el:'#app',
+        data:{
+            imgUrl:null,//套餐对应的图片链接
+            order:{}
+        },
+        mounted(){
+            axios.post("/orders/findByOrderId.do?id=" + id).then((response) => {
+                if(response.data.flag){
+                    this.order = response.data.data;
+                    this.imgUrl = 'http://q15lbtw63.bkt.clouddn.com/' + this.order.img;
+                }
+            });
+        }
+    });
+</script>
+</body>

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:v-model="http://www.w3.org/1999/xhtml">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0,user-scalable=no,minimal-ui">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="../img/asset-favico.ico">
+    <title>评估问卷</title>
+
+    <!--引入样式-->
+    <link rel="stylesheet" href="../css/page-health-riskQuestion.css"/>
+        <link rel="stylesheet" href="../plugins/elementui/index.css" />
+        <script src="../plugins/jquery/dist/jquery.min.js"></script>
+<!--    <script type="text/javascript" src="../js/jquery-3.3.1.min.js"></script>-->
+    <!--引入组件库-->
+    <script src="../plugins/vue/vue.js"></script>
+    <script src="../plugins/vue/axios-0.18.0.js"></script>
+    <script src="../plugins/elementui/index.js"></script>
+</head>
+
+<body data-spy="scroll" data-target="#myNavbar" data-offset="150">
+<div class="app" id="app">
+    <!-- 页面头部 -->
+    <div class="top-header">
+        <span class="f-left"><i class="icon-back"></i>返回</span>
+        <span class="center">传智健康</span>
+        <span class="f-right"><i class="icon-more"></i></span>
+    </div>
+    <!-- 页面内容 -->
+    <div class="contentBox">
+        <div class="question">
+            <div class="q-tit">
+                <p class="type-num"><span><i class="cur-num">{{completeNum}}</i>/<i class="total-num">{{residueNum}}</i>[<i
+                        class="type">单选</i>]</span></p>
+                <p class="tit">{{question.question}}</p>
+            </div>
+            <div class="q-choose">
+                <div class="choose-items">
+                    <div class="input-row radio left">
+                        <input id="item1" type="radio" name="item" value="1" v-model="score">
+                        <label for="item1"></label>
+                        <span>根本不</span>
+                    </div>
+                    <div class="input-row radio left">
+                        <input id="item2" type="radio" name="item" value="2" v-model="score">
+                        <label for="item2"></label>
+                        <span>有一点</span>
+                    </div>
+                    <div class="input-row radio left">
+                        <input id="item3" type="radio" name="item" value="3" v-model="score">
+                        <label for="item3"></label>
+                        <span>有些</span>
+                    </div>
+                    <div class="input-row radio left">
+                        <input id="item4" type="radio" name="item" value="4" v-model="score">
+                        <label for="item4"></label>
+                        <span>经常</span>
+                    </div>
+                    <div class="input-row radio left">
+                        <input id="item5" type="radio" name="item" value="5" v-model="score">
+                        <label for="item5"></label>
+                        <span>总是</span>
+                    </div>
+                </div>
+                <div class="tool-btn">
+                    <!--                        <a class="btn next-btn" @click="nextQuestion()">下一题</a>-->
+                    <a class="btn next-btn" v-if="hasComplete == false" @click="nextQuestion()">下一题</a>
+                    <a class="btn next-btn" v-if="hasComplete == true" @click="complete()">提交</a>
+                    <a class="btn cancle-btn">取消</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 页面 css js -->
+<!--<script src="health-index.js"></script>-->
+
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            questionList: [],
+            completeNum: 1,
+            residueNum: 0,
+            easyScore: 0,
+            hardScore: 0,
+            question: '',
+            score: 0,
+            maxScore: 0,
+            maxScoreType: '',
+            hasComplete: false
+        },
+        methods: {
+            getQuestion() {
+                axios.get('/question/getRandomQuestion.do').then((res) => {
+                    this.questionList = res.data.data;
+                    this.questionList.sort(this.randomsort);
+                    this.residueNum = this.questionList.length;
+                    this.question = this.questionList[this.completeNum - 1];
+                });
+            },
+            nextQuestion() {
+                if (this.score != 0) {
+                    this.completeNum++;
+                    this.question = this.questionList[this.completeNum - 1];
+                    if (this.question.type == '平和质') {
+                        this.easyScore += +this.score;
+                    } else {
+                        this.hardScore += +this.score;
+                        //记录最大值和最大值对应的体质信息
+                        if (this.score > this.maxScore) {
+                            this.maxScore = this.score;
+                            this.maxScoreType = this.question.type;
+                        }
+                    }
+                    if (this.completeNum == this.residueNum) {
+                        this.hasComplete = true;
+                    }
+                    //取消单选框的选中
+                    this.score = 0;
+                } else {
+                    this.$message.error("请选择问题答案");
+                }
+            },
+            randomsort(a, b) {
+                return Math.random() > .5 ? -1 : 1;
+                //用Math.random()函数生成0~1之间的随机数与0.5比较，返回-1或1
+            },
+            complete() {
+                var param = {
+                    easyScore:this.easyScore,
+                    hardScore:this.hardScore,
+                    maxScoreType:this.maxScoreType
+                };
+                axios.post('/question/getResult.do', param).then((res) => {
+                    var result = res.data.data;
+                    location.href = 'http://localhost:84/pages/health-riskPageComplete.html?result=' + result;
+                })
+            }
+        },
+        created() {
+            this.getQuestion();
+        }
+    })
+</script>
+
+
+</body>

@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itheima.dao.MemberDao">
+    <select id="findAll" resultType="com.itheima.pojo.Member">
+        select * from t_member
+    </select>
+
+    <!--根据条件查询-->
+    <select id="selectByCondition" parameterType="string" resultType="map">
+        select * from t_member
+        <if test="value != null and value.length > 0">
+            where fileNumber like concat('%',#{value},'%') or phoneNumber like concat('%',#{value},'%')  or name like concat('%',#{value},'%')
+    </if>
+    </select>
+
+    <!--新增会员-->
+    <insert id="add" parameterType="com.itheima.pojo.Member">
+        <selectKey resultType="java.lang.Integer" order="AFTER" keyProperty="id">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        insert into t_member(fileNumber,name,sex,idCard,phoneNumber,regTime,password,email,birthday,remark)
+        values (#{fileNumber},#{name},#{sex},#{idCard},#{phoneNumber},#{regTime},#{password},#{email},#{birthday},#{remark})
+    </insert>
+
+    <!--删除会员-->
+    <delete id="deleteById" parameterType="int" >
+        delete from t_member where id = #{id}
+    </delete>
+
+    <!--根据id查询会员-->
+    <select id="findById" parameterType="int" resultType="com.itheima.pojo.Member">
+        select * from t_member where id = #{id}
+    </select>
+
+    <!--根据手机号查询会员-->
+    <select id="findByTelephone" parameterType="string" resultType="com.itheima.pojo.Member">
+        select * from t_member where phoneNumber = #{phoneNumber}
+    </select>
+
+    <!--编辑会员-->
+    <update id="edit" parameterType="com.itheima.pojo.Member">
+        update t_member
+        <set>
+            <if test="fileNumber != null">
+                fileNumber = #{fileNumber},
+            </if>
+            <if test="name != null">
+                name = #{name},
+            </if>
+            <if test="sex != null">
+                sex = #{sex},
+            </if>
+            <if test="idCard != null">
+                idCard = #{idCard},
+            </if>
+            <if test="phoneNumber != null">
+                phoneNumber = #{phoneNumber},
+            </if>
+            <if test="regTime != null">
+                regTime = #{regTime},
+            </if>
+            <if test="password != null">
+                password = #{password},
+            </if>
+            <if test="email != null">
+                email = #{email},
+            </if>
+            <if test="birthday != null">
+                birthday = #{birthday},
+            </if>
+            <if test="remark != null">
+                remark = #{remark},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--根据日期统计会员数，统计指定日期之前的会员数-->
+    <select id="findMemberCountBeforeDate" parameterType="string" resultType="int">
+        select count(id) from t_member where regTime &lt;= #{value}
+    </select>
+
+    <!--根据日期统计会员数-->
+    <select id="findMemberCountByDate" parameterType="string" resultType="int">
+        select count(id) from t_member where regTime = #{value}
+    </select>
+
+    <!--根据日期统计会员数，统计指定日期之后的会员数-->
+    <select id="findMemberCountAfterDate" parameterType="string" resultType="int">
+        select count(id) from t_member where regTime &gt;= #{value}
+    </select>
+
+    <!--总会员数-->
+    <select id="findMemberTotalCount" resultType="int">
+        select count(id) from t_member
+    </select>
+
+    <!--根据月份查会员数,&lt;这个表示小于号,是小于号的转义字符,这里面不能直接写小于号,不然报错-->
+    <select id="findByMonth" parameterType="string" resultType="int">
+        SELECT COUNT(id) FROM t_member WHERE regTime &lt;=#{value}
+    </select>
+
+    <select id="findThisMonthNewMember" parameterType="map" resultType="Integer">
+        select count(id) from t_member WHERE regTime BETWEEN #{begin} and #{end}
+    </select>
+
+
+    <update id="updateMember" parameterType="map">
+        update t_member set phoneNumber = #{phoneNumber},sex = #{sex},name = #{userName} where id = (select member_id from t_order where id = #{id})
+    </update>
+
+
+    <select id="queryPageReport" parameterType="string" resultType="map">
+        select * from (
+        select o.orderDate,s.name,o.patientsName,o.id,m.fileNumber,m.phoneNumber,r.reportstatus
+        from t_member m, t_order o,t_setmeal s,t_reportstatus r
+        where m.id = o.member_id
+        and o.setmeal_id = s.id
+        and o.id = r.order_id and o.orderStatus = '已到诊' and r.reportExist = '未删除') t
+<where>
+    <if test="_parameter != null and _parameter.length > 0">
+        t.phoneNumber like concat('%',#{_parameter},'%')
+        or t.fileNumber like concat('%',#{_parameter},'%')
+        or t.patientsName like concat('%',#{_parameter},'%')
+    </if>
+</where>
+    </select>
+
+    <select id="getMessage" parameterType="int" resultType="map">
+        select o.patientsName,s.name,o.orderDate,m.phoneNumber,o.sex,o.age,o.idCard
+        from t_order o,t_member m, t_setmeal s
+        where o.member_id = m.id and o.setmeal_id = s.id and o.id = #{id}
+    </select>
+
+
+    <select id="getCheckItemByOrderId" parameterType="int" resultType="checkItem">
+        select * from t_checkitem where id in (select checkitem_id from t_checkgroup_checkitem
+        where checkgroup_id in (
+        select checkgroup_id from t_setmeal_checkgroup
+        where setmeal_id = (select setmeal_id from  t_order where id = #{id} )))
+    </select>
+
+    <insert id="addReport" parameterType="report" keyColumn="int" keyProperty="id" useGeneratedKeys="true">
+        insert into t_report values(#{id},#{name},#{sex},#{age},#{idCard},#{phoneNumber},#{setMealName},#{checkDate},#{doctorName},#{orderId})
+    </insert>
+
+    <insert id="addReportItem" parameterType="map">
+        insert into t_report_item values (#{id},#{checkItemName},#{attention},#{reportId},#{result})
+    </insert>
+
+    <select id="getCount" parameterType="int" resultType="int">
+        select count(*) from t_checkitem where id in (select checkitem_id from t_checkgroup_checkitem
+        where checkgroup_id in (
+        select checkgroup_id from t_setmeal_checkgroup
+        where setmeal_id = (select setmeal_id from  t_order where id = #{orderId} )))
+    </select>
+
+    <update id="changeStatus" parameterType="int">
+        update t_reportstatus set reportStatus = '已提交' where order_id = #{orderId}
+    </update>
+
+    <select id="findReportByOrderId" parameterType="int" resultType="report">
+        select * from t_report where order_id = #{orderId}
+    </select>
+
+    <insert id="addReportStatus" parameterType="int">
+        insert into t_reportstatus values('未提交',#{orderId},'未删除')
+    </insert>
+
+    <select id="checkStatus" parameterType="int" resultType="String">
+        select reportStatus from t_reportstatus where order_id = #{id}
+    </select>
+
+    <select id="getReportIdByOrderId" parameterType="int" resultType="int">
+        select id from t_report where order_id = #{id}
+    </select>
+    <delete id="deleteReportItem" parameterType="int">
+        delete from t_report_item where report_id = #{reportId}
+    </delete>
+    <delete id="deleteReport" parameterType="int">
+        delete from t_report where order_id = #{id}
+    </delete>
+    <update id="changeReportExist" parameterType="int">
+        update t_reportstatus set reportExist = '已删除' where order_id = #{id}
+    </update>
+</mapper>

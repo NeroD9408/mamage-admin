@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0,user-scalable=no,minimal-ui">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" name="viewport">
+
+    <link rel="icon" href="../img/asset-favico.ico">
+    <title>信息详情</title>
+    <link rel="stylesheet" href="../css/page-health-orderInfo.css" />
+    <link rel="stylesheet" href="../plugins/elementui/index.css" />
+    <script src="../plugins/jquery/dist/jquery.min.js"></script>
+    <script src="../plugins/healthmobile.js"></script>
+    <script src="../plugins/datapicker/datePicker.js"></script>
+    <script src="../plugins/vue/vue.js"></script>
+    <script src="../plugins/vue/axios-0.18.0.js"></script>
+    <script src="../plugins/elementui/index.js"></script>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="../plugins2/elementui/index.css">
+    <link rel="stylesheet" href="../plugins2/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../css2/style.css">
+    <script>
+        var id = getUrlParam("id");
+    </script>
+    <style type="text/css">
+        input{
+            background-color: #f4f4f5;
+        }
+    </style>
+</head>
+<body data-spy="scroll" data-target="#myNavbar" data-offset="150">
+<div id="app" class="app">
+    <!-- 页面头部 -->
+    <div class="top-header">
+        <span class="f-left"><i class="icon-back" onclick="history.go(-1)"></i></span>
+        <span class="center">传智健康</span>
+    </div>
+    <!-- 页面内容 -->
+        <div class="form-info">
+            <div class="info-title">
+                <span class="name">信息详情</span>
+            </div>
+            <form class="info-form">
+                <div class="input-row">
+                    <label>用户名</label>
+                    <input v-model="orderInfo.name" type="text" class="input-clear" placeholder="未设置">
+                </div>
+                <div class="input-row single-radio">
+                    <label class="radio-title">性别</label>
+                    <div class="radio-list">
+                        <div class="radio">
+                            <input v-model="orderInfo.sex" id="item1" type="radio" name="sex" value="1">
+                            <label for="item1"></label>
+                            <span>男</span>
+                        </div>
+                        <div class="radio">
+                            <input v-model="orderInfo.sex" id="item2" type="radio" name="sex" value="2">
+                            <label for="item2"></label>
+                            <span>女</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="input-row">
+                    <label>手机号</label>
+                    <input v-model="orderInfo.phoneNumber" type="text" class="input-clear">
+                </div>
+                <div class="input-row">
+                    <label>身份证号码</label>
+                    <input v-model="orderInfo.idCard" type="text" class="input-clear">
+                </div>
+                <div class="input-row">
+                    <label>邮箱</label>
+                    <input v-model="orderInfo.email" type="text" class="input-clear" placeholder="未设置">
+                </div>
+                <div class="input-row">
+                    <label>生日</label>
+                    <input v-model="orderInfo.birthday" type="text" class="input-clear" readonly>
+                </div>
+                <div class="input-row">
+                    <label>注册日期</label>
+                    <input v-model="orderInfo.regTime" type="text" class="input-clear" readonly>
+                </div>
+            </form>
+            <div class="box-button">
+                <el-button type="text" class="btn order-btn"  @click="handleUpdate()">修改个人信息</el-button>
+            </div>
+
+        </div>
+
+
+    <!-- 修改信息弹出框 -->
+    <div class="add-form">
+        <el-dialog title="修改个人信息" :visible.sync="dialogFormVisible">
+            <el-form ref="dataAddForm"   label-position="right" label-width="200px">
+                <el-row>
+                    <el-col :span="12">
+                        <el-form-item label="用户名" prop="code">
+                            <el-input v-model="orderInfo.name"/>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row>
+                    <el-col :span="12">
+                        <el-form-item label="手机号" prop="code">
+                            <el-input v-model="orderInfo.phoneNumber"/>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row>
+                    <el-col :span="12">
+                        <el-form-item label="身份证号码" prop="code">
+                            <el-input v-model="orderInfo.idCard"/>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row>
+                    <el-col :span="12">
+                        <el-form-item label="邮箱" prop="code">
+                            <el-input v-model="orderInfo.email"/>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="dialogFormVisible = false">取消</el-button>
+                <el-button type="primary"  @click="update()">确定</el-button>
+            </div>
+        </el-dialog>
+    </div>
+</div>
+
+
+<script>
+    var vue = new Vue({
+        el:'#app',
+        data:{
+            orderInfo:{
+                password:{}//密码
+            },
+            dialogFormVisible: false//增加表单是否可见
+
+        },
+        methods:{
+            // 弹出窗口
+            handleUpdate(){
+                this.dialogFormVisible=true;
+                this.resetForm()
+            },
+            //修改个人信息
+            update(){
+                axios.post("/orderDetail/update.do",this.orderInfo).then((res)=>{
+                    if(res.data.flag){
+                    this.$message({
+                        type:'success',
+                        message:res.data.message
+                    })
+                    window.location.href="member.html";
+
+                }else{
+                    this.$message.error(res.data.message)
+                }
+                });
+            }
+        },
+        created(){
+            axios.get("/orderDetail/getOrderDetail.do").then((res)=>{
+                if(res.data.flag){
+                    this.orderInfo = res.data.data;
+
+                }
+                console.log(this.orderInfo);
+            });
+        }
+    });
+
+</script>
+</body>
+</html>

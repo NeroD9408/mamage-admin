@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0,user-scalable=no,minimal-ui">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="../img/asset-favico.ico">
+    <title>传智健康</title>
+    <link rel="stylesheet" href="../css/page-health-order.css"/>
+    <link rel="stylesheet" href="../css/index.css"/>
+    <style>
+        .p{
+            margin-bottom: 13px;
+        }
+    </style>
+
+</head>
+<body data-spy="scroll" data-target="#myNavbar" data-offset="150">
+<div class="app" id="app">
+    <!-- 页面头部 -->
+    <div class="top-header">
+        <span class="f-left"><i class="icon-back" onclick="history.go(-1)"></i></span>
+        <span class="center">预约记录</span>
+        <span class="f-right"><i class="icon-more"></i></span>
+    </div>
+    <!-- 页面内容 -->
+    <div class="contentBox">
+        <div class="box">
+            <template>
+                <div class="block">
+                    <span class="demonstration">选择日期</span>
+                    <el-date-picker
+                            v-model="value2"
+                            type="daterange"
+                            align="right"
+                            unlink-panels
+                            range-separator="至"
+                            start-placeholder="开始日期"
+                            end-placeholder="结束日期"
+                            :picker-options="pickerOptions">
+                    </el-date-picker>
+                    <el-button @click="findOrdersByDate()" class="dalfBut">查询</el-button>
+                </div>
+            </template>
+            <!--<div class="list-column1">
+                <ul class="list">
+                    <li class="list-item" v-for="member in memberList">
+                        &lt;!&ndash;<a class="link-page" :href="'health_case_detail.html?id='+order.id">&ndash;&gt;
+                        &lt;!&ndash;                        <div class="project-img" style="float: left; padding-bottom: 4px">&ndash;&gt;
+                        <img :src="'http://q15lbtw63.bkt.clouddn.com/' + member.setmealImg"/>
+                        &lt;!&ndash;                            <div class="item-body" style="float: left;">&ndash;&gt;
+
+                        <span>
+                            <h4 class="ellipsis item-title">体检人：{{member.patientsName}}</h4>
+                        <br>
+                        <br>
+                            <p class="ellipsis-more item-desc">{{member.setmealName}}</p><br>
+                            <a class="btn next-btn" @click="findAllByOrderId(member.id)">点击查看预约详情</a>
+                            </span>
+                        &lt;!&ndash;                        <h4 @cilck="findAllByOrderId(member.id)">点击查看预约详情</h4>&ndash;&gt;
+                        &lt;!&ndash;                            </div>&ndash;&gt;
+                        &lt;!&ndash;                        </div>&ndash;&gt;
+                        &lt;!&ndash;<img class="img-object f-left" :src="'http://q15lbtw63.bkt.clouddn.com/'+setmealImg.img" alt="">&ndash;&gt;
+                    </li>
+                </ul>
+            </div>-->
+            <div class="list-column1">
+                <ul class="list">
+                    <li class="list-item" v-for="member in memberList">
+                        <a class="link-page">
+                            <img class="img-object f-left" :src="'http://q15lbtw63.bkt.clouddn.com/' + member.setmealImg" alt="">
+                            <div class="item-body" style="float: right;">
+                                <h4 class="ellipsis item-title">体检人: {{member.patientsName}}</h4>
+                                <p class="ellipsis-more item-desc p">{{member.setmealName}}</p>
+                                <el-button type="primary" round size="mini" @click="findAllByOrderId(member.id)">点击获取详情</el-button>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+</div>
+<!-- 页面 css js -->
+<script src="../plugins/vue/vue.js"></script>
+<script src="../plugins/vue/axios-0.18.0.js"></script>
+<script type="text/javascript" src="../js/index.js"></script>
+<!--<script src="https://unpkg.com/element-ui/lib/index.js"></script>-->
+<script>
+    var vue = new Vue({
+        el: '#app',
+        data: {
+            memberList: [],
+            pickerOptions: {
+                shortcuts: [{
+                    text: '最近一周',
+                    onClick(picker) {
+                        const end = new Date();
+                        const start = new Date();
+                        start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
+                        picker.$emit('pick', [start, end]);
+                    }
+                }, {
+                    text: '最近一个月',
+                    onClick(picker) {
+                        const end = new Date();
+                        const start = new Date();
+                        start.setTime(start.getTime() - 3600 * 1000 * 24 * 30);
+                        picker.$emit('pick', [start, end]);
+                    }
+                }, {
+                    text: '最近一年',
+                    onClick(picker) {
+                        const end = new Date();
+                        const start = new Date();
+                        start.setTime(start.getTime() - 3600 * 1000 * 24 * 365);
+                        picker.$emit('pick', [start, end]);
+                    }
+                }]
+            },
+            value2: '',
+            imgUrl: null
+        },
+
+        methods: {
+            findOrdersByDate() {
+                axios.post("/memberOrder/findOrdersByDate.do", this.value2).then((response) => {
+                    if (response.data.flag) {
+                        this.memberList = response.data.data
+                    } else {
+                        this.$message.error(response.data.message)
+                    }
+                })
+            },
+            findAllByOrderId(memberId) {
+                location.href = 'health_case_detail.html?id=' + memberId;
+            }
+        },
+        mounted() {
+            axios.post("/order/findOrders.do").then((response) => {
+                if (response.data.flag) {
+                    this.memberList = response.data.data;
+                    this.imgUrl = 'http://q15lbtw63.bkt.clouddn.com/' + this.memberList.img;
+                } else {
+                    this.$message.error(response.data.message)
+                }
+            });
+        }
+    });
+</script>
+</body>
+</html>

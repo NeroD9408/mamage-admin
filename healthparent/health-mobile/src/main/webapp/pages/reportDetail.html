@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0,user-scalable=no,minimal-ui">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="../img/asset-favico.ico">
+    <title>预约详情</title>
+    <link rel="stylesheet" href="../css/page-health-orderDetail.css" />
+    <script src="../plugins/vue/vue.js"></script>
+    <script src="../plugins/vue/axios-0.18.0.js"></script>
+    <script src="../plugins/healthmobile.js"></script>
+    <script>
+        var id = getUrlParam("id");
+    </script>
+</head>
+<body data-spy="scroll" data-target="#myNavbar" data-offset="150">
+<div id="app" class="app">
+    <!-- 页面头部 -->
+    <div class="top-header">
+        <span class="f-left"><i class="icon-back" onclick="history.go(-1)"></i></span>
+        <span class="center">传智健康</span>
+        <span class="f-right"><i class="icon-more"></i></span>
+    </div>
+    <!-- 页面内容 -->
+    <div class="contentBox">
+        <div class="card">
+            <div class="project-img">
+                <img :src="imgUrl" width="100%" height="100%" />
+            </div>
+            <div class="project-text">
+                <h4 class="tit">体检人:{{Info.patientsName}}</h4>
+                <p class="subtit">体检套餐:{{Info.name}}</p>
+                <p class="subtit">体检日期:{{Info.orderDate}}</p>
+            </div>
+
+        </div>
+        <div class="table-listbox">
+            <div class="box-table">
+                <div class="table-title">
+                    <div class="tit-item flex2">检查项目名称</div>
+                    <div class="tit-item  flex3">检查结果</div>
+                    <div class="tit-item  flex3">医师意见</div>
+                </div>
+                <div class="table-content">
+                    <ul class="table-list">
+                        <li class="table-item" v-for="item in report">
+                            <div class="item flex2">{{item.checkItemName}}</div>
+                            <div class="item flex3" style="text-align: center">{{item.result}}</div>
+                            <div class="item flex3" style="text-align: center">{{item.attention}}</div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    var vue = new Vue({
+        el:'#app',
+        data:{
+            Info:{},
+            report:{}
+        },
+        mounted(){
+            axios.post("/report/getReport.do?id=" + id).then((res) => {
+                this.report = res.data.data;
+            });
+            axios.post("/report/getOrderUser.do?id=" + id).then((res)=>{
+                this.Info = res.data.data;
+            })
+        }
+    });
+</script>
+</body>

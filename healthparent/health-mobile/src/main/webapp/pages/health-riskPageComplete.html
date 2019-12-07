@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0,user-scalable=no,minimal-ui">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="../img/asset-favico.ico">
+    <title>问卷结束</title>
+
+    <link rel="stylesheet" href="../css/page-health-riskPageComplete.css"/>
+    <link rel="stylesheet" href="../css/page-health-riskQuestion.css"/>
+    <link rel="stylesheet" href="../plugins/elementui/index.css"/>
+    <script src="../plugins/jquery/dist/jquery.min.js"></script>
+    <!--    <script type="text/javascript" src="../js/jquery-3.3.1.min.js"></script>-->
+    <!--引入组件库-->
+    <script src="../plugins/healthmobile.js"></script>
+    <script src="../plugins/vue/vue.js"></script>
+    <script src="../plugins/vue/axios-0.18.0.js"></script>
+    <script src="../plugins/elementui/index.js"></script>
+</head>
+<script>
+    var result = getUrlParam("result");
+</script>
+
+<body data-spy="scroll" data-target="#myNavbar" data-offset="150">
+<div class="app" id="app">
+    <!-- 页面头部 -->
+    <div class="top-header">
+        <span class="f-left"><i class="icon-back"></i>返回</span>
+        <span class="center">传智健康</span>
+        <span class="f-right"><i class="icon-more"></i></span>
+    </div>
+    <!-- 页面内容 -->
+    <div class="contentBox">
+        <div class="question">
+            <div class="q-tit">
+                <p class="tit">
+                <h2>您的体质类型是：{{habitus.title}}</h2></p>
+            </div>
+            <div class="q-choose">
+                <!--<div class="choose-items">
+                    <div class="input-row radio left">
+                        <input id="item1" type="radio" name="item" value="选项一" checked>
+                        <label for="item1"></label>
+                        <span>未婚男士</span>
+                    </div>
+                    <div class="input-row radio left">
+                        <input id="item2" type="radio" name="item" value="选项二">
+                        <label for="item2"></label>
+                        <span>未婚女士</span>
+                    </div>
+                    <div class="input-row radio left">
+                        <input id="item3" type="radio" name="item" value="选项二">
+                        <label for="item3"></label>
+                        <span>已婚男士</span>
+                    </div>
+                    <div class="input-row radio left">
+                        <input id="item4" type="radio" name="item" value="选项二">
+                        <label for="item4"></label>
+                        <span>已婚女士</span>
+                    </div>
+                </div>-->
+                <p><h3>{{habitus.desc}}</h3></p>
+                <div class="block" style="text-align: center;margin-top: 40px;">
+                    请您给我们的问卷打分<br>
+                    <br>
+                    <el-rate v-model="value"></el-rate>
+                </div>
+                <div class="tool-btn">
+                    <a class="btn next-btn" @click="complete()">提交</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 页面 css js -->
+<!-- <script src="health-index.js"></script> -->
+
+
+</body>
+
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            habitus: {
+                title: '阳虚体质',
+                desc: '阳虚体质是当人体脏腑功能失调时易出现体内阳气不足、阳虚生里寒的表现，常表现为面色苍白，气息微弱，体倦嗜卧，畏寒肢冷，全身无力或有肢体浮肿，舌淡胖嫩边有齿痕，苔淡白，脉沉微无力，多因先天禀赋不足、加之寒邪外侵或过食寒凉之品、忧思过极、房事不节、久病之后而发病。发病倾向：易患痰饮、肿胀、泄泻等病，耐夏不耐冬，易感风、寒、湿邪。应以益气温阳散寒为治则，还应针对脏腑辨证，分别温补心、脾、肾之阳气。用温补阳气药时加少量补阴之品。平素注意调护改善阳虚体质，防止发病。'
+            },
+            value: null,
+        },
+        created() {
+            axios.get('/question/getResultByTitle.do?result=' + result).then((res) => {
+                this.habitus = res.data.data;
+            })
+        },
+        methods:{
+            complete() {
+                alert("感谢您的评价");
+                location.href = 'http://localhost:84/index.html';
+            }
+        }
+    })
+</script>

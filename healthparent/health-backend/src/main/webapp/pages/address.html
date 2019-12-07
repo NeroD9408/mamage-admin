@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <!-- 页面meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <title>传智健康</title>
+
+    <!--引用百度地图API-->
+    <style type="text/css">
+        html, body {
+            margin: 0;
+            padding: 0;
+        }
+
+        .iw_poi_title {
+            color: #CC5522;
+            font-size: 14px;
+            font-weight: bold;
+            overflow: hidden;
+            padding-right: 13px;
+            white-space: nowrap
+        }
+
+        .iw_poi_content {
+            font: 12px arial, sans-serif;
+            overflow: visible;
+            padding-top: 4px;
+            white-space: -moz-pre-wrap;
+            word-wrap: break-word
+        }
+
+    </style>
+    <script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=moc52ad8mB8329aRNHrVzkviDLpWfguv"></script>
+
+    <meta name="description" content="传智健康">
+    <meta name="keywords" content="传智健康">
+    <meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" name="viewport">
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="../plugins/elementui/index.css">
+    <link rel="stylesheet" href="../plugins/font-awesome/css/font-awesome.min(1).css">
+    <link rel="stylesheet" href="../css/style.css">
+    <!-- 引入组件库 -->
+    <script type="text/javascript" src="../js/jquery.min.js"></script>
+    <script src="../js/vue.js"></script>
+    <script src="../plugins/elementui/index.js"></script>
+    <script src="../js/axios-0.18.0.js"></script>
+    <style>
+        .avatar-uploader .el-upload {
+            border: 1px dashed #d9d9d9;
+            border-radius: 6px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .avatar-uploader .el-upload:hover {
+            border-color: #409EFF;
+        }
+
+        .avatar-uploader-icon {
+            font-size: 28px;
+            color: #8c939d;
+            width: 178px;
+            height: 178px;
+            line-height: 178px;
+            text-align: center;
+        }
+
+        .avatar {
+            width: 178px;
+            height: 178px;
+            display: block;
+        }
+
+        .datatable {
+            position: relative;
+            box-sizing: border-box;
+            -webkit-box-flex: 1;
+            width: 100%;
+            max-width: 100%;
+            font-size: 14px;
+            color: rgb(96, 98, 102);
+            overflow: hidden;
+            flex: 1 1 0%;
+        }
+
+        .datatable td, .datatable th {
+            padding: 12px 0;
+            min-width: 0;
+            -webkit-box-sizing: border-box;
+            box-sizing: border-box;
+            text-overflow: ellipsis;
+            vertical-align: middle;
+            position: relative;
+            text-align: left;
+        }
+    </style>
+</head>
+<body class="hold-transition">
+<div id="app">
+    <div class="content-header">
+        <h1>地址管理
+            <small>机构地址管理</small>
+        </h1>
+        <el-breadcrumb separator-class="el-icon-arrow-right" class="breadcrumb">
+            <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+            <el-breadcrumb-item>地址管理</el-breadcrumb-item>
+            <el-breadcrumb-item>机构地址管理</el-breadcrumb-item>
+        </el-breadcrumb>
+    </div>
+    <div class="app-container">
+        <div class="box">
+            <div class="filter-container">
+                <el-input placeholder="地址/名称/助记码" v-model="pagination.queryString" style="width: 200px;"
+                          class="filter-item" @keyup.enter.native="handleFilter"></el-input>
+                <el-button @click="findPageC()" class="dalfBut">查询</el-button>
+                <el-button type="primary" class="butT" @click="handleCreate()">新建</el-button>
+            </div>
+
+            <el-table size="small" current-row-key="id" :data="dataList" stripe highlight-current-row>
+                <el-table-column type="index" align="center" label="序号"></el-table-column>
+                <el-table-column src="img" label="机构图片" align="center">
+
+                    <template scope="scope">
+                        <img :src="'http://q15lbtw63.bkt.clouddn.com/'+scope.row.img" width="100" height="100"/>
+                    </template>
+
+                </el-table-column>
+                <el-table-column prop="name" label="机构名称" align="center"></el-table-column>
+                <el-table-column prop="telephone" label="机构电话" align="center"></el-table-column>
+                <el-table-column prop="location" label="机构地址" align="center"></el-table-column>
+                <el-table-column prop="openTime" label="营业时间" align="center"></el-table-column>
+                <el-table-column prop="status" label="运营状态" align="center">
+
+                    <template scope="scope">
+                        <el-tag type="success" v-if="scope.row.status=='正常运营'">正常运营</el-tag>
+                        <el-tag type="danger" v-if="scope.row.status=='暂停运营'">暂停运营</el-tag>
+                    </template>
+
+                </el-table-column>
+                <el-table-column label="操作" align="center">
+                    <template slot-scope="scope">
+                        <el-button type="primary" size="mini" @click="handleUpdate(scope.row)">编辑</el-button>
+                        <el-button size="mini" type="danger" @click="handleDelete(scope.row)">删除</el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+            <div class="pagination-container">
+                <el-pagination
+                        class="pagiantion"
+                        @current-change="handleCurrentChange"
+                        :current-page="pagination.currentPage"
+                        :page-size="pagination.pageSize"
+                        layout="total, prev, pager, next, jumper"
+                        :total="pagination.total">
+                </el-pagination>
+            </div>
+
+
+            <!--百度地图容器-->
+            <!--<div style="width:492px;height:350px;border:#ccc solid 1px; margin-bottom: 20px" id="dituContent"></div>-->
+
+
+            <!-- 新增标签弹层 -->
+            <div class="add-form">
+                <el-dialog title="新增地址" :visible.sync="dialogFormVisible">
+                    <template>
+                        <el-tabs v-model="activeName" type="card">
+                            <el-tab-pane label="基本信息" name="first">
+                                <el-form label-position="right" label-width="100px">
+                                    <el-row>
+                                        <el-col :span="24">
+                                            <el-form-item label="机构名称">
+                                                <el-input v-model="formData.name"/>
+                                            </el-form-item>
+                                        </el-col>
+                                    </el-row>
+
+                                    <el-row>
+                                        <el-col :span="24">
+                                            <el-form-item label="机构地址">
+                                                <el-input v-model="formData.location"/>
+                                            </el-form-item>
+                                        </el-col>
+                                    </el-row>
+
+                                    <el-row>
+                                        <el-col :span="12">
+                                            <el-form-item label="机构电话">
+                                                <el-input v-model="formData.telephone"/>
+                                            </el-form-item>
+                                        </el-col>
+                                        <el-col :span="12">
+                                            <el-form-item label="营业时间">
+                                                <el-input v-model="formData.openTime"/>
+                                            </el-form-item>
+                                        </el-col>
+                                    </el-row>
+
+                                    <el-row>
+                                        <el-col :span="12">
+                                            <el-form-item label="运营状态">
+                                                <el-select v-model="formData.status">
+                                                    <el-option label="正常运营" value="正常运营"></el-option>
+                                                    <el-option label="暂停运营" value="暂停运营"></el-option>
+                                                </el-select>
+                                            </el-form-item>
+                                        </el-col>
+                                        <el-col :span="12">
+                                            <el-form-item label="助记码">
+                                                <el-input v-model="formData.helpCode"/>
+                                            </el-form-item>
+                                        </el-col>
+                                    </el-row>
+
+                                    <el-row>
+                                        <el-col :span="12">
+                                            <el-form-item label="位置经度">
+                                                <el-input v-model="formData.longitude"/>
+                                            </el-form-item>
+                                        </el-col>
+                                        <el-col :span="12">
+                                            <el-form-item label="位置纬度">
+                                                <el-input v-model="formData.latitude"/>
+                                            </el-form-item>
+                                        </el-col>
+                                    </el-row>
+
+                                    <!--<el-row>
+                                        <el-col :span="24">
+                                            <el-form-item label="位置选择">
+                                                <a href="http://api.map.baidu.com/lbsapi/getpoint/index.html" target="_blank">点击选择位置坐标</a>
+                                            </el-form-item>
+                                        </el-col>
+                                    </el-row>-->
+
+                                    <!--百度地图容器-->
+                                    <div style="width:666px;height:350px;border:#ccc solid 1px; margin-bottom: 20px;margin-left: 32px"
+                                         id="dituContent"></div>
+
+
+                                    <el-row>
+                                        <el-col :span="24">
+                                            <el-form-item label="上传图片">
+                                                <el-upload
+                                                        class="avatar-uploader"
+                                                        action="/address/upload.do"
+                                                        :auto-upload="autoUpload"
+                                                        name="imgFile"
+                                                        :show-file-list="false"
+                                                        :on-success="handleAvatarSuccess"
+                                                        :before-upload="beforeAvatarUpload">
+                                                    <img v-if="imageUrl" :src="imageUrl" class="avatar">
+                                                    <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+                                                </el-upload>
+                                            </el-form-item>
+                                        </el-col>
+                                    </el-row>
+                                    <el-row>
+                                        <el-col :span="24">
+                                            <el-form-item label="备注">
+                                                <el-input v-model="formData.remark" type="textarea"></el-input>
+                                            </el-form-item>
+                                        </el-col>
+                                    </el-row>
+                                </el-form>
+                            </el-tab-pane>
+
+                            <el-tab-pane label="套餐信息" name="second">
+                                <div class="checkScrol">
+                                    <table class="datatable">
+                                        <thead>
+                                        <tr>
+                                            <th>选择</th>
+                                            <th>项目编码</th>
+                                            <th>项目名称</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <tr v-for="s in tableData">
+                                            <td>
+                                                <input :id="s.id" v-model="setmealIds" type="checkbox" :value="s.id">
+                                            </td>
+                                            <td><label :for="s.id">{{s.code}}</label></td>
+                                            <td><label :for="s.id">{{s.name}}</label></td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </el-tab-pane>
+
+                        </el-tabs>
+                    </template>
+                    <div slot="footer" class="dialog-footer">
+                        <el-button @click="dialogFormVisible = false">取消</el-button>
+                        <el-button type="primary" @click="handleAdd()">确定</el-button>
+                    </div>
+                </el-dialog>
+            </div>
+
+            <!-- 编辑标签弹层 -->
+            <div class="add-form">
+                <el-dialog title="编辑地址" :visible.sync="dialogFormVisible4Edit">
+                    <template>
+                        <el-tabs v-model="activeName" type="card">
+                            <el-tab-pane label="基本信息" name="first">
+                                <el-form label-position="right" label-width="100px">
+                                    <el-row>
+                                        <el-col :span="24">
+                                            <el-form-item label="机构名称">
+                                                <el-input v-model="formData.name"/>
+                                            </el-form-item>
+                                        </el-col>
+                                    </el-row>
+
+                                    <el-row>
+                                        <el-col :span="24">
+                                            <el-form-item label="机构地址">
+                                                <el-input v-model="formData.location"/>
+                                            </el-form-item>
+                                        </el-col>
+                                    </el-row>
+
+                                    <el-row>
+                                        <el-col :span="12">
+                                            <el-form-item label="机构电话">
+                                                <el-input v-model="formData.telephone"/>
+                                            </el-form-item>
+                                        </el-col>
+                                        <el-col :span="12">
+                                            <el-form-item label="营业时间">
+                                                <el-input v-model="formData.openTime"/>
+                                            </el-form-item>
+                                        </el-col>
+                                    </el-row>
+
+                                    <el-row>
+                                        <el-col :span="12">
+                                            <el-form-item label="运营状态">
+                                                <el-select v-model="formData.status">
+                                                    <el-option label="正常运营" value="正常运营"></el-option>
+                                                    <el-option label="暂停运营" value="暂停运营"></el-option>
+                                                </el-select>
+                                            </el-form-item>
+                                        </el-col>
+                                        <el-col :span="12">
+                                            <el-form-item label="助记码">
+                                                <el-input v-model="formData.helpCode"/>
+                                            </el-form-item>
+                                        </el-col>
+                                    </el-row>
+
+                                    <el-row>
+                                        <el-col :span="12">
+                                            <el-form-item label="位置经度">
+                                                <el-input v-model="formData.longitude"/>
+                                            </el-form-item>
+                                        </el-col>
+                                        <el-col :span="12">
+                                            <el-form-item label="位置纬度">
+                                                <el-input v-model="formData.latitude"/>
+                                            </el-form-item>
+                                        </el-col>
+                                    </el-row>
+
+                                    <!--百度地图容器-->
+                                    <div style="width:666px;height:350px;border:#ccc solid 1px; margin-bottom: 20px;margin-left: 32px"
+                                         id="dituContent2"></div>
+
+
+                                    <el-row>
+                                        <el-col :span="24">
+                                            <el-form-item label="上传图片">
+                                                <el-upload
+                                                        class="avatar-uploader"
+                                                        action="/address/upload.do"
+                                                        :auto-upload="autoUpload"
+                                                        name="imgFile"
+                                                        :show-file-list="false"
+                                                        :on-success="handleAvatarSuccess"
+                                                        :before-upload="beforeAvatarUpload">
+                                                    <img v-if="imageUrl" :src="imageUrl" class="avatar">
+                                                    <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+                                                </el-upload>
+                                            </el-form-item>
+                                        </el-col>
+                                    </el-row>
+                                    <el-row>
+                                        <el-col :span="24">
+                                            <el-form-item label="备注">
+                                                <el-input v-model="formData.remark" type="textarea"></el-input>
+                                            </el-form-item>
+                                        </el-col>
+                                    </el-row>
+                                </el-form>
+
+                            </el-tab-pane>
+
+                            <el-tab-pane label="套餐信息" name="second">
+                                <div class="checkScrol">
+                                    <table class="datatable">
+                                        <thead>
+                                        <tr>
+                                            <th>选择</th>
+                                            <th>项目编码</th>
+                                            <th>项目名称</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <tr v-for="s in tableData">
+                                            <td>
+                                                <input :id="s.id" v-model="setmealIds" type="checkbox" :value="s.id">
+                                            </td>
+                                            <td><label :for="s.id">{{s.code}}</label></td>
+                                            <td><label :for="s.id">{{s.name}}</label></td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </el-tab-pane>
+
+
+                        </el-tabs>
+                    </template>
+                    <div slot="footer" class="dialog-footer">
+                        <el-button @click="dialogFormVisible4Edit = false">取消</el-button>
+                        <el-button type="primary" @click="handleEdit()">确定</el-button>
+                    </div>
+                </el-dialog>
+            </div>
+
+
+        </div>
+    </div>
+</div>
+
+
+<script>
+
+
+    var vue = new Vue({
+        el: '#app',
+        data: {
+            autoUpload: true,//自动上传
+            imageUrl: null,//模型数据，用于上传图片完成后图片预览
+            activeName: 'first',//添加/编辑窗口Tab标签名称
+            pagination: {//分页相关属性
+                currentPage: 1,
+                pageSize: 4,
+                total: 100,
+                queryString: null,
+            },
+            dataList: [],//列表数据
+            formData: {
+                location: "",
+            },//表单数据
+            tableData: [],//添加表单窗口中检查组列表数据
+            setmealIds: [],//添加表单窗口中检查组复选框对应id
+            dialogFormVisible: false,//控制添加窗口显示/隐藏
+            dialogFormVisible4Edit: false,//控制编辑框框显示/隐藏
+
+
+        },
+        created() {
+            this.findPage();
+        },
+        methods: {
+            //文件上传成功后的钩子，response为服务端返回的值，file为当前上传的文件封装成的js对象
+            handleAvatarSuccess(response, file) {
+                /*这里的这个handleAvatarSuccess方法是别人(不知道是谁,是框架还是什么的,无所谓)提供的,
+                所以这里的response,就相当于是我们一直以来写的 res.data了,知晓一下*/
+                this.imageUrl = 'http://q15lbtw63.bkt.clouddn.com/' + response.data;
+                this.$message({
+                    type: response.flag ? 'success' : 'error',
+                    message: response.message
+                });
+                this.formData.img = response.data;
+            },
+            //上传图片之前执行
+            beforeAvatarUpload(file) {
+                const isJPG = file.type === 'image/jpeg';
+                const isLt2M = file.size / 1024 / 1024 < 2;
+                if (!isJPG) {
+                    this.$message.error('上传套餐图片只能是 JPG 格式!');
+                }
+                if (!isLt2M) {
+                    this.$message.error('上传套餐图片大小不能超过 2MB!');
+                }
+                return isJPG && isLt2M;
+            },
+            //添加
+            handleAdd() {
+                axios.post("/address/add.do?setmealIds=" + this.setmealIds, this.formData).then((res) => {
+                    this.dialogFormVisible = false;
+                    if (res.data.flag) {
+                        this.$message({
+                            type: 'success',
+
+                            message: res.data.message
+                        })
+                    } else {
+                        this.$message.error(res.data.message)
+                    }
+                }).finally(() => {
+                    this.findPage()
+                })
+            },
+
+            findPageC() {
+                this.pagination.currentPage = 1;
+                this.findPage()
+            },
+
+
+            //分页查询
+            findPage() {
+                var param = {
+                    currentPage: this.pagination.currentPage,
+                    pageSize: this.pagination.pageSize,
+                    queryString: this.pagination.queryString
+                };
+                axios.post("/address/findPage.do", param).then((res) => {
+                    this.pagination.total = res.data.total;
+                    this.dataList = res.data.rows;
+
+                })
+            },
+            // 重置表单
+            resetForm() {
+                this.formData = {};
+                this.activeName = 'first';
+                this.imageUrl = null;
+                this.setmealIds = [];
+            },
+            // 弹出添加窗口
+            handleCreate() {
+                this.resetForm();
+                this.dialogFormVisible = true;
+                axios.get("/setmeal/findAll.do").then((res) => {
+                    //下面这一步createMap()至关重要,必须在异步请求里面,不然地图无法加载出来
+                    createMap1();
+                    if (res.data.flag) {
+                        //说明查到数据了
+                        this.tableData = res.data.data;
+
+                    } else {
+                        //说明查询数据失败了
+                        this.$message.error(res.data.message)
+                    }
+                })
+            },
+            //切换页码
+            handleCurrentChange(currentPage) {
+                this.pagination.currentPage = currentPage;
+                this.findPage()
+            },
+            //弹出编辑窗口
+            handleUpdate(row) {
+                this.activeName = 'first';
+                this.dialogFormVisible4Edit = true;
+
+                axios.get("/address/findById.do?id=" + row.id).then((res) => {
+                    createMap2();
+                    if (res.data.flag) {
+                        this.formData = res.data.data;
+                        this.imageUrl = 'http://q15lbtw63.bkt.clouddn.com/' + res.data.data.img
+                    } else {
+                        this.$message.error(res.data.message)
+                    }
+                });
+
+
+                axios.get("/setmeal/findAll.do").then((res) => {
+                    if (res.data.flag) {
+                        //说明查到数据了
+                        this.tableData = res.data.data;
+
+                        axios.get("/address/findSetmealIds.do?id=" + row.id).then((res) => {
+                            this.setmealIds = res.data
+                        })
+                    } else {
+                        //说明查询数据失败了
+                        this.$message.error(res.data.message)
+                    }
+                });
+
+
+            },
+            //编辑
+            handleEdit() {
+                axios.post("/address/update.do?setmealIds=" + this.setmealIds, this.formData).then((res) => {
+                    this.dialogFormVisible4Edit = false;
+                    if (res.data.flag) {
+                        this.$message({
+                            type: 'success',
+                            message: res.data.message
+                        });
+                    } else {
+                        this.message.error(res.data.message)
+                    }
+                }).finally(() => {
+                    this.findPage()
+                });
+            },
+
+
+            handleDelete(row) {
+                this.$confirm('您确定删除该机构信息吗?', '提示', {
+                    type: 'warning'
+                }).then(() => {
+                    axios.get("/address/deleteById.do?id=" + row.id).then((res) => {
+                        if (res.data.flag) {
+                            this.$message({
+                                type: 'success',
+                                message: res.data.message
+                            });
+                            this.findPage()
+                        } else {
+                            this.$confirm('该医疗机构已有预约订单关联,无法删除,只能更改运营状态为暂停运营,' +
+                                '更改之后,客户在预约时将不会展示该机构的信息,即无法预约该机构,请问您是否要更改?', '提示', {
+                                type: 'warning'
+                            }).then(() => {
+                                axios.get("/address/editAddressStatusById.do?id=" + row.id).then((res) => {
+                                    if (res.data.flag) {
+                                        this.$message({
+                                            type: 'success',
+                                            message: res.data.message
+                                        });
+                                        this.findPage()
+                                    } else {
+                                        this.$message.error(res.data.message)
+                                    }
+                                })
+                            }).catch(() => {
+                                this.$message({
+                                    type: 'info',
+                                    message: '操作已取消'
+                                })
+                            })
+                        }
+                    })
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '操作已取消'
+                    })
+                })
+            }
+        }
+    });
+
+
+    function createMap1() {
+        //创建和初始化地图函数：
+        function initMap() {
+            createMap();//创建地图
+            setMapEvent();//设置地图事件
+            addMapControl();//向地图添加控件
+            addMarker();//向地图中添加marker
+
+        }
+
+        //创建地图函数：
+        function createMap() {
+
+            var map = new BMap.Map("dituContent");//在百度地图容器中创建一个地图
+
+            var point = new BMap.Point(117.307982, 31.868324);//定义一个中心点坐标
+            map.centerAndZoom(point, 13);//设定地图的中心点和坐标并将地图显示在地图容器中
+            window.map = map;//将map变量存储在全局
+        }
+
+        //地图事件设置函数：
+        function setMapEvent() {
+            map.enableDragging();//启用地图拖拽事件，默认启用(可不写)
+            map.enableScrollWheelZoom();//启用地图滚轮放大缩小
+            map.enableDoubleClickZoom();//启用鼠标双击放大，默认启用(可不写)
+            map.enableKeyboard();//启用键盘上下左右键移动地图
+        }
+
+        //地图控件添加函数：
+        function addMapControl() {
+            //向地图中添加缩放控件
+            var ctrl_nav = new BMap.NavigationControl({
+                anchor: BMAP_ANCHOR_TOP_LEFT,
+                type: BMAP_NAVIGATION_CONTROL_LARGE
+            });
+            map.addControl(ctrl_nav);
+            //向地图中添加缩略图控件
+            var ctrl_ove = new BMap.OverviewMapControl({anchor: BMAP_ANCHOR_BOTTOM_RIGHT, isOpen: 0});
+            map.addControl(ctrl_ove);
+            //向地图中添加比例尺控件
+            var ctrl_sca = new BMap.ScaleControl({anchor: BMAP_ANCHOR_BOTTOM_LEFT});
+            map.addControl(ctrl_sca);
+        }
+
+        //标注点数组
+        var markerArr = [];
+
+        //创建marker
+        function addMarker() {
+            for (var i = 0; i < markerArr.length; i++) {
+                var json = markerArr[i];
+                var p0 = json.point.split("|")[0];
+                var p1 = json.point.split("|")[1];
+                var point = new BMap.Point(p0, p1);
+                var iconImg = createIcon(json.icon);
+                var marker = new BMap.Marker(point, {icon: iconImg});
+                var iw = createInfoWindow(i);
+                var label = new BMap.Label(json.title, {"offset": new BMap.Size(json.icon.lb - json.icon.x + 10, -20)});
+                marker.setLabel(label);
+                map.addOverlay(marker);
+
+                label.setStyle({
+                    borderColor: "#808080",
+                    color: "#333",
+                    cursor: "pointer"
+                });
+
+                (function () {
+                    var index = i;
+                    var _iw = createInfoWindow(i);
+                    var _marker = marker;
+                    _marker.addEventListener("click", function () {
+
+                        this.openInfoWindow(_iw);
+                    });
+                    _iw.addEventListener("open", function () {
+
+                        _marker.getLabel().hide();
+                    })
+                    _iw.addEventListener("close", function () {
+
+                        _marker.getLabel().show();
+                    })
+                    label.addEventListener("click", function () {
+
+                        _marker.openInfoWindow(_iw);
+                    })
+                    if (!!json.isOpen) {
+                        label.hide();
+                        _marker.openInfoWindow(_iw);
+                    }
+                })()
+            }
+        }
+
+
+        //创建InfoWindow,信息窗口
+        function createInfoWindow(i) {
+            var json = markerArr[i];
+            var iw = new BMap.InfoWindow(json.title);
+            return iw;
+        }
+
+        //创建一个Icon 图标
+        function createIcon(json) {
+            var icon = new BMap.Icon("../img/ditu1.png", new BMap.Size(json.w, json.h), {
+                imageOffset: new BMap.Size(-json.l, -json.t),
+                infoWindowOffset: new BMap.Size(json.lb + 5, 1),
+                offset: new BMap.Size(json.x, json.h)
+            })
+            return icon;
+        }
+
+        initMap();//创建和初始化地图
+
+
+        window.map.addEventListener("click", function (e) {
+
+            // axios.post("/address/getLocation.do").then((res)=>{
+            map.clearOverlays();
+            vue.formData.longitude = e.point.lng;
+            vue.formData.latitude = e.point.lat;
+            var log = e.point.lng + "|" + e.point.lat;
+            var myGeo = new BMap.Geocoder();
+            // 根据坐标得到地址描述
+            myGeo.getLocation(new BMap.Point(vue.formData.longitude, vue.formData.latitude), function (result) {
+                    vue.formData.location = result.address;
+                    markerArr = [{
+                        title: vue.formData.location,
+                        point: log,
+                        isOpen: 1,
+                        icon: {w: 32, h: 32, l: 0, t: 0, x: 11, lb: 1}
+                    }];
+                    vue.dialogFormVisible = false;
+                    vue.dialogFormVisible = true;
+                    addMarker();
+                    createInfoWindow(0);
+                    createIcon(markerArr[0]);
+            });
+            //});
+        });
+
+    }
+
+    function createMap2() {
+        //创建和初始化地图函数：
+        function initMap() {
+            createMap();//创建地图
+            setMapEvent();//设置地图事件
+            addMapControl();//向地图添加控件
+            addMarker();//向地图中添加marker
+
+        }
+
+        //创建地图函数：
+        function createMap() {
+
+            var map = new BMap.Map("dituContent2");//在百度地图容器中创建一个地图
+
+            var point = new BMap.Point(117.307982, 31.868324);//定义一个中心点坐标
+            map.centerAndZoom(point, 13);//设定地图的中心点和坐标并将地图显示在地图容器中
+            window.map = map;//将map变量存储在全局
+        }
+
+        //地图事件设置函数：
+        function setMapEvent() {
+            map.enableDragging();//启用地图拖拽事件，默认启用(可不写)
+            map.enableScrollWheelZoom();//启用地图滚轮放大缩小
+            map.enableDoubleClickZoom();//启用鼠标双击放大，默认启用(可不写)
+            map.enableKeyboard();//启用键盘上下左右键移动地图
+        }
+
+        //地图控件添加函数：
+        function addMapControl() {
+            //向地图中添加缩放控件
+            var ctrl_nav = new BMap.NavigationControl({
+                anchor: BMAP_ANCHOR_TOP_LEFT,
+                type: BMAP_NAVIGATION_CONTROL_LARGE
+            });
+            map.addControl(ctrl_nav);
+            //向地图中添加缩略图控件
+            var ctrl_ove = new BMap.OverviewMapControl({anchor: BMAP_ANCHOR_BOTTOM_RIGHT, isOpen: 0});
+            map.addControl(ctrl_ove);
+            //向地图中添加比例尺控件
+            var ctrl_sca = new BMap.ScaleControl({anchor: BMAP_ANCHOR_BOTTOM_LEFT});
+            map.addControl(ctrl_sca);
+        }
+
+        //标注点数组
+        var markerArr = [];
+
+        //创建marker
+        function addMarker() {
+            for (var i = 0; i < markerArr.length; i++) {
+                var json = markerArr[i];
+                var p0 = json.point.split("|")[0];
+                var p1 = json.point.split("|")[1];
+                var point = new BMap.Point(p0, p1);
+                var iconImg = createIcon(json.icon);
+                var marker = new BMap.Marker(point, {icon: iconImg});
+                var iw = createInfoWindow(i);
+                var label = new BMap.Label(json.title, {"offset": new BMap.Size(json.icon.lb - json.icon.x + 10, -20)});
+                marker.setLabel(label);
+                map.addOverlay(marker);
+                label.setStyle({
+                    borderColor: "#808080",
+                    color: "#333",
+                    cursor: "pointer"
+                });
+
+                (function () {
+                    var index = i;
+                    var _iw = createInfoWindow(i);
+                    var _marker = marker;
+                    _marker.addEventListener("click", function () {
+
+                        this.openInfoWindow(_iw);
+                    });
+                    _iw.addEventListener("open", function () {
+
+                        _marker.getLabel().hide();
+                    })
+                    _iw.addEventListener("close", function () {
+
+                        _marker.getLabel().show();
+                    })
+                    label.addEventListener("click", function () {
+
+                        _marker.openInfoWindow(_iw);
+                    })
+                    if (!!json.isOpen) {
+                        label.hide();
+                        _marker.openInfoWindow(_iw);
+                    }
+                })()
+            }
+        }
+
+
+        //创建InfoWindow,信息窗口
+        function createInfoWindow(i) {
+            var json = markerArr[i];
+            var iw = new BMap.InfoWindow(json.title);
+            return iw;
+        }
+
+        //创建一个Icon 图标
+        function createIcon(json) {
+            var icon = new BMap.Icon("../img/ditu1.png", new BMap.Size(json.w, json.h), {
+                imageOffset: new BMap.Size(-json.l, -json.t),
+                infoWindowOffset: new BMap.Size(json.lb + 5, 1),
+                offset: new BMap.Size(json.x, json.h)
+            })
+            return icon;
+        }
+
+        initMap();//创建和初始化地图
+
+
+        window.map.addEventListener("click", function (e) {
+
+            // axios.post("/address/getLocation.do").then((res)=>{
+            map.clearOverlays();
+            vue.formData.longitude = e.point.lng;
+            vue.formData.latitude = e.point.lat;
+            var log = e.point.lng + "|" + e.point.lat;
+            var myGeo = new BMap.Geocoder();
+            // 根据坐标得到地址描述
+            myGeo.getLocation(new BMap.Point(vue.formData.longitude, vue.formData.latitude), function (result) {
+                vue.formData.location = result.address;
+                markerArr = [{
+                    title: vue.formData.location,
+                    point: log,
+                    isOpen: 1,
+                    icon: {w: 32, h: 32, l: 0, t: 0, x: 11, lb: 1}
+                }];
+                vue.dialogFormVisible4Edit = false;
+                vue.dialogFormVisible4Edit = true;
+                addMarker();
+                createInfoWindow(0);
+                createIcon(markerArr[0]);
+            });
+            //});
+        });
+
+    }
+    /*function createMap2() {
+        //创建和初始化地图函数：
+        function initMap() {
+            createMap();//创建地图
+            setMapEvent();//设置地图事件
+            addMapControl();//向地图添加控件
+            addMarker();//向地图中添加marker
+
+        }
+
+
+        //创建地图函数：
+        function createMap() {
+
+            var map = new BMap.Map("dituContent2");//在百度地图容器中创建一个地图
+
+            var point = new BMap.Point(117.307982, 31.868324);//定义一个中心点坐标
+            map.centerAndZoom(point, 13);//设定地图的中心点和坐标并将地图显示在地图容器中
+            window.map = map;//将map变量存储在全局
+        }
+
+        //地图事件设置函数：
+        function setMapEvent() {
+            map.enableDragging();//启用地图拖拽事件，默认启用(可不写)
+            map.enableScrollWheelZoom();//启用地图滚轮放大缩小
+            map.enableDoubleClickZoom();//启用鼠标双击放大，默认启用(可不写)
+            map.enableKeyboard();//启用键盘上下左右键移动地图
+        }
+
+        //地图控件添加函数：
+        function addMapControl() {
+            //向地图中添加缩放控件
+            var ctrl_nav = new BMap.NavigationControl({
+                anchor: BMAP_ANCHOR_TOP_LEFT,
+                type: BMAP_NAVIGATION_CONTROL_LARGE
+            });
+            map.addControl(ctrl_nav);
+            //向地图中添加缩略图控件
+            var ctrl_ove = new BMap.OverviewMapControl({anchor: BMAP_ANCHOR_BOTTOM_RIGHT, isOpen: 0});
+            map.addControl(ctrl_ove);
+            //向地图中添加比例尺控件
+            var ctrl_sca = new BMap.ScaleControl({anchor: BMAP_ANCHOR_BOTTOM_LEFT});
+            map.addControl(ctrl_sca);
+        }
+
+        //标注点数组
+        var markerArr = [];
+
+        //创建marker
+        function addMarker() {
+            for (var i = 0; i < markerArr.length; i++) {
+                var json = markerArr[i];
+                var p0 = json.point.split("|")[0];
+                var p1 = json.point.split("|")[1];
+                var point = new BMap.Point(p0, p1);
+                var iconImg = createIcon(json.icon);
+                var marker = new BMap.Marker(point, {icon: iconImg});
+                var iw = createInfoWindow(i);
+                var label = new BMap.Label(json.title, {"offset": new BMap.Size(json.icon.lb - json.icon.x + 10, -20)});
+                marker.setLabel(label);
+                map.addOverlay(marker);
+                label.setStyle({
+                    borderColor: "#808080",
+                    color: "#333",
+                    cursor: "pointer"
+                });
+
+                (function () {
+                    var index = i;
+                    var _iw = createInfoWindow(i);
+                    var _marker = marker;
+                    _marker.addEventListener("click", function () {
+                        alert(_iw.content);
+                        this.openInfoWindow(_iw);
+                    });
+                    _iw.addEventListener("open", function () {
+
+                        _marker.getLabel().hide();
+                    });
+                    _iw.addEventListener("close", function () {
+
+                        _marker.getLabel().show();
+                    });
+                    label.addEventListener("click", function () {
+                        _marker.openInfoWindow(_iw);
+                    });
+                    if (!!json.isOpen) {
+                        label.hide();
+                        _marker.openInfoWindow(_iw);
+                    }
+                })()
+            }
+        }
+
+
+        //创建InfoWindow,信息窗口
+        function createInfoWindow(i) {
+            var json = markerArr[i];
+            var iw = new BMap.InfoWindow(json.title);
+            return iw;
+        }
+
+        //创建一个Icon 图标
+        function createIcon(json) {
+            var icon = new BMap.Icon("../img/img4.jpg", new BMap.Size(json.w, json.h), {
+                imageOffset: new BMap.Size(-json.l, -json.t),
+                infoWindowOffset: new BMap.Size(json.lb + 5, 1),
+                offset: new BMap.Size(json.x, json.h)
+            })
+            return icon;
+        }
+
+        initMap();//创建和初始化地图
+
+        window.map.addEventListener("click", function (e) {
+
+            axios.post("/address/getLocation.do").then((res) => {
+                vue.formData.longitude = e.point.lng;
+                vue.formData.latitude = e.point.lat;
+                vue.dialogFormVisible4Edit = false;
+                vue.dialogFormVisible4Edit = true;
+
+            });
+        });
+
+    }*/
+
+</script>
+
+</body>
+</html>
